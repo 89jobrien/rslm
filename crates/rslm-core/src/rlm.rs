@@ -68,6 +68,14 @@ impl Rlm {
         let child_verbose = self.verbose;
 
         let rlm_call_fn = move |q: String, sub_ctx: String| -> String {
+            if child_verbose {
+                println!(
+                    "[depth={}] rlm_call: {:?} (ctx: {} bytes)",
+                    child_depth,
+                    q,
+                    sub_ctx.len()
+                );
+            }
             let provider = Arc::clone(&child_provider);
             let child = Rlm {
                 provider,
