@@ -1,0 +1,16 @@
+[package]
+name = "rslm-providers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+async-openai.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true

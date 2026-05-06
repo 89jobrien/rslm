@@ -1,0 +1,31 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/rslm-core",
+    "crates/rslm-providers",
+    "crates/rslm-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = ["Joseph O'Brien"]
+
+[workspace.dependencies]
+rslm-core = { path = "crates/rslm-core" }
+rslm-providers = { path = "crates/rslm-providers" }
+
+rhai = "1"
+async-openai = "0.26"
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+anyhow = "1"
+regex = "1"
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"

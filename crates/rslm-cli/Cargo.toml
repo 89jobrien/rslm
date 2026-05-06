@@ -1,0 +1,19 @@
+[package]
+name = "rslm-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "rslm"
+path = "src/main.rs"
+
+[dependencies]
+rslm-core.workspace = true
+rslm-providers.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
