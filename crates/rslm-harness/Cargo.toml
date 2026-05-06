@@ -1,0 +1,13 @@
+[package]
+name = "rslm-harness"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+rslm-core.workspace = true
+rslm-providers.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+anyhow.workspace = true

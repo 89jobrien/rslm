@@ -1529,6 +1529,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rslm-harness"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "rslm-core",
+ "rslm-providers",
+ "tokio",
+]
+
+[[package]]
 name = "rslm-providers"
 version = "0.1.0"
 dependencies = [
