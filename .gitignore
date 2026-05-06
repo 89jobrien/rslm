@@ -1,4 +1,21 @@
-.ctx/
+# Rust
 target/
 **/*.rs.bk
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS
 .DS_Store
+
+# handoff-begin
+.ctx/*
+!.ctx/HANDOFF.*.yaml
+.ctx/HANDOFF.*.state.json
+!.ctx/handoff.*.config.toml.example
+.ctx/HANDOFF.*.*.state.json
+.ctx/HANDOFF.hj.hj.state.json
+.ctx/.initialized
+# handoff-end
