@@ -17,3 +17,7 @@ anyhow.workspace = true
 clap.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+
+[dev-dependencies]
+rslm-harness = { path = "../rslm-harness" }
+tempfile.workspace = true

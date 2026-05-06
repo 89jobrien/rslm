@@ -1,5 +1,7 @@
 mod file_mode;
 mod interactive;
+#[cfg(test)]
+mod tests;
 
 use std::sync::Arc;
 
