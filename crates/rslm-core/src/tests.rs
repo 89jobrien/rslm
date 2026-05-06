@@ -367,21 +367,14 @@ final_answer(ans)
     #[tokio::test]
     async fn rlm_recovers_from_script_error_via_next_iteration() {
         // First response is a broken script; second response is valid with final_answer.
-        // The RLM loop should feed the error back and try again.
+        // The error is fed back to the model as a user message, so the second call recovers.
         let provider = Arc::new(MockProvider::new(vec![
             "this is not valid rhai !!!",
             r#"final_answer("recovered")"#,
         ]));
         let rlm = Rlm::new(provider, 5, 20, false);
-        // run_with_retry retries the same script up to 3 times then hard-fails.
-        // For cross-iteration recovery we need the provider's second response.
-        // The current impl retries the same script. After 3 retries on the bad script
-        // it returns ScriptError — so this test verifies that behavior.
-        let result = rlm.run("q", "ctx").await;
-        assert!(matches!(
-            result,
-            Err(crate::protocol::RlmError::ScriptError(_))
-        ));
+        let result = rlm.run("q", "ctx").await.unwrap();
+        assert_eq!(result, "recovered");
     }
 
     #[tokio::test]

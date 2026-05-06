@@ -109,8 +109,18 @@ impl Rlm {
                 println!("[depth={}] >> {}", self.depth, script.trim());
             }
 
-            // Run with up to 3 retries on script error
-            let output = self.run_with_retry(&engine, &script, &state, 3)?;
+            // Execute the script; on error feed it back to the model for self-correction.
+            let output = match run_script(&engine, &script, &state) {
+                Ok(out) => out,
+                Err(err) => {
+                    tracing::warn!(depth = self.depth, iteration, error = %err, "script error, feeding back to model");
+                    messages.push(Message::assistant(script));
+                    messages.push(Message::user(format!(
+                        "Script error:\n{err}\n\nFix the script and try again, or call final_answer()."
+                    )));
+                    continue;
+                }
+            };
 
             if self.verbose {
                 println!("[depth={}] << {}", self.depth, output.trim());
@@ -138,28 +148,6 @@ impl Rlm {
         }
 
         Err(RlmError::MaxIterationsExceeded(self.max_iterations))
-    }
-
-    fn run_with_retry(
-        &self,
-        engine: &rhai::Engine,
-        script: &str,
-        state: &Arc<Mutex<CallState>>,
-        retries: usize,
-    ) -> Result<String, RlmError> {
-        for attempt in 0..=retries {
-            match run_script(engine, script, state) {
-                Ok(out) => return Ok(out),
-                Err(e) if attempt < retries => {
-                    tracing::warn!(depth = self.depth, attempt, error = %e, "script error, will retry");
-                    // Note: in a real multi-turn loop the retry would feed the error back to the
-                    // model. Here we just retry the same script (the outer loop handles model
-                    // feedback). Hard-fail after max retries.
-                }
-                Err(e) => return Err(RlmError::ScriptError(e)),
-            }
-        }
-        unreachable!()
     }
 }
 
