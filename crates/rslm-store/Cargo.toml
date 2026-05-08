@@ -5,5 +5,12 @@ edition = "2021"
 license.workspace = true
 authors.workspace = true
 
+[features]
+live-tests = []
+
 [dependencies]
 anyhow = { workspace = true }
+async-trait = { workspace = true }
+async-openai = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
