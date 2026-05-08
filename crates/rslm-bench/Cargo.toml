@@ -1,0 +1,38 @@
+[package]
+name = "rslm-bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+serde = { workspace = true }
+serde_json.workspace = true
+
+[dev-dependencies]
+rslm-core.workspace = true
+rslm-providers.workspace = true
+rslm-store.workspace = true
+rslm-harness.workspace = true
+criterion.workspace = true
+tokio.workspace = true
+rhai.workspace = true
+tempfile.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "engine"
+harness = false
+
+[[bench]]
+name = "rlm_loop"
+harness = false
+
+[[bench]]
+name = "store"
+harness = false
+
+[[bench]]
+name = "accuracy"
+harness = false

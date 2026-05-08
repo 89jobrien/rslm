@@ -1,0 +1,82 @@
+[
+  {
+    "id": "conn_limit",
+    "query": "How does mini-redis limit the number of concurrent connections?",
+    "expected_patterns": ["semaphore", "250", "MAX_CONNECTIONS"],
+    "harness_responses": [
+      "let r = ctx_grep(\"Semaphore\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "shutdown_server",
+    "query": "How does the server signal active connections to shut down?",
+    "expected_patterns": ["broadcast", "notify_shutdown"],
+    "harness_responses": [
+      "let r = ctx_grep(\"notify_shutdown\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "shutdown_wait",
+    "query": "What does the server wait for before exiting after a shutdown signal?",
+    "expected_patterns": ["shutdown_complete", "mpsc", "recv"],
+    "harness_responses": [
+      "let r = ctx_grep(\"shutdown_complete\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "db_expiry_structures",
+    "query": "What data structures does the Db use to track key expiration?",
+    "expected_patterns": ["BTreeSet", "expirations", "Instant"],
+    "harness_responses": [
+      "let r = ctx_grep(\"BTreeSet\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "db_expiry_notify",
+    "query": "How does the Db notify the background task when a new expiration is added?",
+    "expected_patterns": ["notify_one", "background_task", "Notify"],
+    "harness_responses": [
+      "let r = ctx_grep(\"notify_one\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "frame_types",
+    "query": "What are the frame types supported by the Redis protocol implementation?",
+    "expected_patterns": ["Simple", "Bulk", "Integer", "Array", "Null", "Error"],
+    "harness_responses": [
+      "let r = ctx_grep(\"Frame::\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "connection_buffer",
+    "query": "What is the default read buffer size used by the Connection struct?",
+    "expected_patterns": ["4", "1024", "4 * 1024"],
+    "harness_responses": [
+      "let r = ctx_grep(\"with_capacity\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "backoff_strategy",
+    "query": "What backoff strategy does the server use when accepting connections fails?",
+    "expected_patterns": ["backoff", "exponential", "64"],
+    "harness_responses": [
+      "let r = ctx_grep(\"backoff\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "pubsub_capacity",
+    "query": "What is the broadcast channel capacity used for pub/sub channels?",
+    "expected_patterns": ["1024"],
+    "harness_responses": [
+      "let r = ctx_grep(\"broadcast::channel\"); final_answer(r)"
+    ]
+  },
+  {
+    "id": "db_mutex_choice",
+    "query": "Why does the Db use std::sync::Mutex instead of tokio::sync::Mutex?",
+    "expected_patterns": ["async", "await", "blocking"],
+    "harness_responses": [
+      "let r = ctx_grep(\"std::sync::Mutex\"); let r2 = ctx_grep(\"Tokio mutex\"); final_answer(r + \"\\n\" + r2)"
+    ]
+  }
+]
