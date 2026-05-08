@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>rslm &mdash; Recursive Language Model</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="brand"><span>rs</span>lm</a>
+  <a href="index.html" class="active">Overview</a>
+  <a href="architecture.html">Architecture</a>
+  <a href="features.html">Features</a>
+  <a href="decisions.html">Decisions</a>
+  <a href="roadmap.html">Roadmap</a>
+</nav>
+
+<div class="page">
+  <h1>rslm</h1>
+  <p class="subtitle">Recursive Language Model inference in Rust &mdash; unbounded context via Rhai scripting.</p>
+
+  <blockquote>
+    The model never sees raw context. It writes scripts to query it. Recursion handles depth.
+  </blockquote>
+
+  <h2>What It Is</h2>
+  <p>
+    rslm implements the <a href="https://alexzhang13.github.io/blog/2025/rlm/">RLM inference pattern</a>
+    (Zhang &amp; Khattab, 2025). An LLM is given a Rhai scripting environment instead of raw context.
+    It calls registered functions to slice, grep, and search the context, spawning recursive child
+    instances for sub-questions. The result is effective handling of arbitrarily large contexts
+    without architecture changes to the underlying model.
+  </p>
+
+  <h2>Crate Structure</h2>
+  <div style="margin:1rem 0; overflow-x:auto;">
+    <img src="arch-crates.svg" alt="Workspace crate graph" style="max-width:100%;display:block;margin:0 auto;"/>
+  </div>
+
+  <table>
+    <thead><tr><th>Crate</th><th>Role</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>rslm-core</code></td>
+        <td>RLM loop, Rhai engine, Notebook, protocol types</td>
+        <td><span class="pill pill-green">Stable</span></td>
+      </tr>
+      <tr>
+        <td><code>rslm-providers</code></td>
+        <td><code>LlmProvider</code> trait, OpenAI + Anthropic impls</td>
+        <td><span class="pill pill-green">Stable</span></td>
+      </tr>
+      <tr>
+        <td><code>rslm-cli</code></td>
+        <td>Binary: query, interactive, ingest subcommands</td>
+        <td><span class="pill pill-green">Stable</span></td>
+      </tr>
+      <tr>
+        <td><code>rslm-store</code></td>
+        <td>ChunkStore, BM25, HNSW, EmbedProvider, RRF</td>
+        <td><span class="pill pill-orange">In progress</span></td>
+      </tr>
+      <tr>
+        <td><code>rslm-harness</code></td>
+        <td>Mock LlmProvider for tests</td>
+        <td><span class="pill pill-green">Stable</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>RLM Inference Loop</h2>
+  <div style="margin:1rem 0; overflow-x:auto;">
+    <img src="arch-rlm-loop.svg" alt="RLM inference loop diagram" style="max-width:100%;display:block;margin:0 auto;"/>
+  </div>
+
+  <h2>Quick Start</h2>
+  <pre>
+# Single query with inline context
+rslm query "What is the main finding?" --context "$(cat paper.txt)"
+
+# File-based context
+rslm query "Summarize section 3" --context-file paper.txt --verbose
+
+# With persistent chunk store (hybrid search)
+rslm ingest --store paper.db --context-file paper.txt
+rslm query "What methodology was used?" --context-file paper.txt --store paper.db
+
+# Anthropic provider
+rslm query "..." --context "..." --provider anthropic --model claude-sonnet-4-6</pre>
+
+  <h2>Environment Variables</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>RSLM_PROVIDER</code></td><td><code>openai</code></td><td>openai or anthropic</td></tr>
+      <tr><td><code>RSLM_MODEL</code></td><td>provider default</td><td>model ID override</td></tr>
+      <tr><td><code>OPENAI_API_KEY</code></td><td>—</td><td>required for OpenAI provider + embedder</td></tr>
+      <tr><td><code>ANTHROPIC_API_KEY</code></td><td>—</td><td>required for Anthropic provider</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>rslm &middot; <a href="https://github.com/89jobrien/rslm">Source on GitHub</a> &middot; Last updated: 2026-05-08</footer>
+</body>
+</html>

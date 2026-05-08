@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/joe/dev/rslm remote -v)",
+      "Bash(gh repo:*)"
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 380" width="780" height="380">
+  <defs>
+    <style>
+      text { font-family: 'SF Mono', 'JetBrains Mono', monospace; fill: #dfe1e8; }
+      .label { font-size: 12px; }
+      .sublabel { font-size: 10px; fill: #7a7f94; }
+      .arrow { stroke: #7a7f94; stroke-width: 1.5; fill: none; marker-end: url(#a); }
+    </style>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#7a7f94"/>
+    </marker>
+  </defs>
+  <rect width="780" height="380" fill="#0b0d11"/>
+
+  <text x="390" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#dfe1e8">rslm-store Internal Architecture</text>
+
+  <!-- Input: raw text -->
+  <rect x="310" y="48" width="160" height="40" rx="6" fill="#14171f" stroke="#1f2330" stroke-width="1.5"/>
+  <text x="390" y="68" text-anchor="middle" class="label">Raw Context Text</text>
+  <text x="390" y="83" text-anchor="middle" class="sublabel">String / file</text>
+
+  <!-- Chunker -->
+  <rect x="290" y="120" width="200" height="50" rx="6" fill="#14171f" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="390" y="143" text-anchor="middle" class="label" font-weight="600" fill="#a78bfa">Chunker</text>
+  <text x="390" y="159" text-anchor="middle" class="sublabel">Fixed · Paragraph · Line</text>
+  <line x1="390" y1="88" x2="390" y2="118" class="arrow"/>
+
+  <!-- SQLite store -->
+  <rect x="290" y="205" width="200" height="55" rx="6" fill="#14171f" stroke="#5b8def" stroke-width="1.5"/>
+  <text x="390" y="226" text-anchor="middle" class="label" font-weight="600" fill="#5b8def">SQLite (rusqlite)</text>
+  <text x="390" y="242" text-anchor="middle" class="sublabel">chunks(doc_id, idx, text, embedding)</text>
+  <text x="390" y="254" text-anchor="middle" class="sublabel">INSERT OR REPLACE — idempotent</text>
+  <line x1="390" y1="170" x2="390" y2="203" class="arrow"/>
+
+  <!-- BM25 -->
+  <rect x="70" y="205" width="175" height="55" rx="6" fill="#14171f" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="157" y="226" text-anchor="middle" class="label" font-weight="600" fill="#f59e0b">BM25Index</text>
+  <text x="157" y="242" text-anchor="middle" class="sublabel">k1=1.5, b=0.75</text>
+  <text x="157" y="254" text-anchor="middle" class="sublabel">tokenize · IDF · score</text>
+
+  <!-- EmbedProvider -->
+  <rect x="535" y="130" width="190" height="55" rx="6" fill="#14171f" stroke="#34d399" stroke-width="1.5"/>
+  <text x="630" y="151" text-anchor="middle" class="label" font-weight="600" fill="#34d399">EmbedProvider</text>
+  <text x="630" y="167" text-anchor="middle" class="sublabel">OpenAiEmbedder (default)</text>
+  <text x="630" y="179" text-anchor="middle" class="sublabel">LocalEmbedder (feature flag)</text>
+
+  <!-- HNSW -->
+  <rect x="535" y="205" width="190" height="55" rx="6" fill="#14171f" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="630" y="226" text-anchor="middle" class="label" font-weight="600" fill="#22d3ee">HnswIndex</text>
+  <text x="630" y="242" text-anchor="middle" class="sublabel">instant-distance · cosine</text>
+  <text x="630" y="254" text-anchor="middle" class="sublabel">lazy rebuild · Arc&lt;RwLock&gt;</text>
+
+  <!-- Arrows: chunker → sqlite, sqlite → bm25, embed → sqlite, sqlite → hnsw -->
+  <line x1="290" y1="232" x2="247" y2="232" class="arrow"/>
+  <line x1="490" y1="232" x2="533" y2="232" class="arrow"/>
+  <line x1="630" y1="185" x2="630" y2="203" class="arrow" stroke="#34d399"/>
+  <text x="498" y="225" class="sublabel" fill="#34d399">embed blob</text>
+
+  <!-- RRF merge -->
+  <rect x="235" y="300" width="310" height="50" rx="6" fill="#14171f" stroke="#5b8def" stroke-width="1.5"/>
+  <text x="390" y="321" text-anchor="middle" class="label" font-weight="600" fill="#5b8def">RRF Merge (rrf.rs)</text>
+  <text x="390" y="339" text-anchor="middle" class="sublabel">reciprocal rank fusion · k=60 · top-k chunks returned</text>
+
+  <line x1="157" y1="260" x2="290" y2="310" class="arrow"/>
+  <line x1="630" y1="260" x2="490" y2="310" class="arrow"/>
+
+  <!-- Rhai fns label -->
+  <text x="390" y="370" text-anchor="middle" class="sublabel">ctx_search() · ctx_semantic() · ctx_hybrid() · ctx_chunk() · ctx_chunks()</text>
+</svg>

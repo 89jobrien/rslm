@@ -122,18 +122,32 @@ impl Rlm {
                 #[cfg(feature = "store")]
                 doc_id: child_doc_id.clone(),
             };
-            // Bridge async -> sync without nesting runtimes.
-            // block_in_place temporarily removes the current thread from the async executor,
-            // allowing a new single-thread runtime to block on the child RLM.
-            tokio::task::block_in_place(move || match tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .expect("build child runtime")
-                .block_on(child.run(&q, &sub_ctx))
+            // Bridge async -> sync. Two cases:
+            // 1. Called from a tokio multi-thread worker: use block_in_place so the worker
+            //    thread is temporarily removed from the executor, then run a fresh
+            //    current-thread runtime on it.
+            // 2. Called from inside a block_in_place / spawn_blocking thread (depth >= 1):
+            //    block_in_place panics here, so detect that and fall back to a plain
+            //    current-thread runtime directly.
+            let run_child = move || {
+                tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .expect("build child runtime")
+                    .block_on(child.run(&q, &sub_ctx))
+            };
+            let result = if tokio::runtime::Handle::try_current()
+                .map(|h| h.runtime_flavor() == tokio::runtime::RuntimeFlavor::MultiThread)
+                .unwrap_or(false)
             {
+                tokio::task::block_in_place(run_child)
+            } else {
+                run_child()
+            };
+            match result {
                 Ok(ans) => ans,
                 Err(e) => format!("rlm_call error: {e}"),
-            })
+            }
         };
 
         #[allow(unused_mut)]

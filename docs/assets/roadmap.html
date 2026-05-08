@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>rslm &mdash; Roadmap</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="brand"><span>rs</span>lm</a>
+  <a href="index.html">Overview</a>
+  <a href="architecture.html">Architecture</a>
+  <a href="features.html">Features</a>
+  <a href="decisions.html">Decisions</a>
+  <a href="roadmap.html" class="active">Roadmap</a>
+</nav>
+
+<div class="page">
+  <h1>Roadmap</h1>
+  <p class="subtitle">Sprint history and planned work.</p>
+
+  <h2>Sprint 1 &mdash; Core RLM Loop <span class="pill pill-green" style="vertical-align:middle;">Complete</span></h2>
+  <table>
+    <thead><tr><th>Item</th><th>Commit</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>3-crate workspace scaffold</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>Rhai engine + ctx_* functions</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>Recursive rlm_call (blocking)</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>Notebook accumulation</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>Script error self-correction</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>OpenAI + Anthropic providers</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>CLI: query, interactive modes</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>Verbose trace output</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>rslm-harness mock provider</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+      <tr><td>CLI integration tests</td><td>—</td><td><span class="pill pill-green">Done</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Sprint 2 &mdash; Hybrid Search + Persistence <span class="pill pill-green" style="vertical-align:middle;">Complete</span></h2>
+  <table>
+    <thead><tr><th>Issue</th><th>Item</th><th>Commit</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://github.com/89jobrien/rslm/issues/6">#6</a></td>
+        <td>BM25 inline scorer</td>
+        <td><code>3deb002</code></td>
+        <td><span class="pill pill-green">Done</span></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/89jobrien/rslm/issues/8">#8</a></td>
+        <td>EmbedProvider trait + OpenAI embedder</td>
+        <td><code>2c6769b</code></td>
+        <td><span class="pill pill-green">Done</span></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/89jobrien/rslm/issues/9">#9</a></td>
+        <td>HNSW index wrapper (cosine, 128-dim)</td>
+        <td><code>3bac2d8</code></td>
+        <td><span class="pill pill-green">Done</span></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/89jobrien/rslm/issues/5">#5</a></td>
+        <td>rslm-store: ChunkStore, RRF, SQLite, chunking</td>
+        <td><code>f199788</code></td>
+        <td><span class="pill pill-green">Done</span></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/89jobrien/rslm/issues/4">#4</a></td>
+        <td>Wire ChunkStore into rslm-core (<code>store</code> feature)</td>
+        <td><code>73c0eb0</code></td>
+        <td><span class="pill pill-green">Done</span></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/89jobrien/rslm/issues/7">#7</a></td>
+        <td><code>rslm ingest</code> + <code>--store</code> CLI flag</td>
+        <td><code>1ed77fc</code></td>
+        <td><span class="pill pill-green">Done</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin:1rem 0; overflow-x:auto;">
+    <img src="arch-search-pipeline.svg" alt="Search pipeline" style="max-width:100%;display:block;margin:0 auto;"/>
+  </div>
+
+  <h2>Sprint 3 &mdash; Planned</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Local embedder (<code>local-embed</code> feature)</td><td>fastembed; no API key required</td></tr>
+      <tr><td>Code-aware chunking</td><td>Function/class boundary splits for 9 language types</td></tr>
+      <tr><td>Tiered provider (root vs child model)</td><td>e.g. GPT-4o root + GPT-4o-mini children for cost control</td></tr>
+      <tr><td>Async parallel rlm_call</td><td>Concurrent child dispatch; requires async Rhai bridge</td></tr>
+      <tr><td>NDJSON output mode</td><td>Shell pipeline composability</td></tr>
+      <tr><td>Ollama / local LLM provider</td><td>OpenAI-compatible endpoint</td></tr>
+      <tr><td>Incremental re-embedding</td><td>Detect changed chunks; skip unchanged on re-ingest</td></tr>
+      <tr><td>Prefix caching hints</td><td>Pass Anthropic <code>cache_control</code> for repeated context</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>rslm &middot; <a href="https://github.com/89jobrien/rslm">Source on GitHub</a> &middot; Last updated: 2026-05-08</footer>
+</body>
+</html>

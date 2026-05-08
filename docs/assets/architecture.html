@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>rslm &mdash; Architecture</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="brand"><span>rs</span>lm</a>
+  <a href="index.html">Overview</a>
+  <a href="architecture.html" class="active">Architecture</a>
+  <a href="features.html">Features</a>
+  <a href="decisions.html">Decisions</a>
+  <a href="roadmap.html">Roadmap</a>
+</nav>
+
+<div class="page">
+  <h1>Architecture</h1>
+  <p class="subtitle">How rslm implements the RLM inference pattern.</p>
+
+  <h2>Core Data Flow</h2>
+  <div style="margin:1rem 0; overflow-x:auto;">
+    <img src="arch-rlm-loop.svg" alt="RLM loop" style="max-width:100%;display:block;margin:0 auto;"/>
+  </div>
+
+  <ol>
+    <li><code>Rlm::run(query, ctx)</code> is called. Context stored in Rhai scope as <code>ctx</code>.</li>
+    <li>System prompt explains the registered Rhai API. Model generates a script.</li>
+    <li>Engine executes the script in a fresh <code>Scope::new()</code> — no state persists between cells.</li>
+    <li>If the script calls <code>rlm_call(q, sub_ctx)</code>: a child <code>Rlm</code> (depth+1) is
+      constructed with an isolated engine, run to completion via <code>spawn_blocking</code>, and its
+      answer returned as the Rhai call's return value.</li>
+    <li>If the script calls <code>final_answer(s)</code>: loop exits, answer bubbles up.</li>
+    <li>Otherwise: script output appended to notebook as <code>Cell { script, output }</code>. Loop
+      continues; next model call gets full message history.</li>
+    <li>Depth limit (default: 5) and iteration limit (default: 20) hard-stop infinite recursion.</li>
+    <li>Script errors are fed back to the model for self-correction (up to 3 retries per cell).</li>
+  </ol>
+
+  <h2>Crate Responsibilities</h2>
+  <div style="margin:1rem 0; overflow-x:auto;">
+    <img src="arch-crates.svg" alt="Crate graph" style="max-width:100%;display:block;margin:0 auto;"/>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3><code>rslm-core</code></h3>
+      <p>Owns the RLM loop (<code>rlm.rs</code>), Rhai engine setup (<code>env.rs</code>),
+      and protocol types (<code>protocol.rs</code>). The <code>Rlm</code> struct holds the
+      provider, depth, limits, and optional <code>ChunkStore</code>. Does not know about CLI.</p>
+    </div>
+    <div class="card">
+      <h3><code>rslm-providers</code></h3>
+      <p><code>LlmProvider</code> trait with <code>async fn complete(messages) -&gt; Result&lt;String&gt;</code>.
+      Two impls: <code>OpenAiProvider</code> (via <code>async-openai</code>) and
+      <code>AnthropicProvider</code> (via <code>reqwest</code>). Selected at runtime via
+      <code>RSLM_PROVIDER</code> env var.</p>
+    </div>
+    <div class="card">
+      <h3><code>rslm-store</code> <span class="pill pill-orange">New</span></h3>
+      <p>Chunking, BM25 keyword search, HNSW vector search, SQLite persistence, embedding
+      provider abstraction, and RRF fusion. Wired into <code>build_engine()</code> optionally —
+      zero behavior change when absent.</p>
+    </div>
+    <div class="card">
+      <h3><code>rslm-cli</code></h3>
+      <p>Binary with <code>query</code>, <code>interactive</code>, and <code>ingest</code>
+      subcommands. Builds provider + optional store, calls <code>Rlm::new()</code>. No business
+      logic — pure wiring.</p>
+    </div>
+  </div>
+
+  <h2>rslm-store Internal Structure</h2>
+  <div style="margin:1rem 0; overflow-x:auto;">
+    <img src="arch-store.svg" alt="Store internals" style="max-width:100%;display:block;margin:0 auto;"/>
+  </div>
+
+  <h2>Hybrid Search Pipeline</h2>
+  <div style="margin:1rem 0; overflow-x:auto;">
+    <img src="arch-search-pipeline.svg" alt="Search pipeline" style="max-width:100%;display:block;margin:0 auto;"/>
+  </div>
+
+  <h2>Rhai API</h2>
+  <table>
+    <thead><tr><th>Function</th><th>Signature</th><th>Description</th><th>Requires store</th></tr></thead>
+    <tbody>
+      <tr><td><code>ctx_len</code></td><td><code>() -&gt; int</code></td><td>Total context byte length</td><td class="no">No</td></tr>
+      <tr><td><code>ctx_slice</code></td><td><code>(start, end) -&gt; String</code></td><td>Byte-range slice of context</td><td class="no">No</td></tr>
+      <tr><td><code>ctx_grep</code></td><td><code>(pattern) -&gt; String</code></td><td>Regex search, matching lines joined</td><td class="no">No</td></tr>
+      <tr><td><code>rlm_call</code></td><td><code>(query, ctx) -&gt; String</code></td><td>Spawn child RLM; blocking</td><td class="no">No</td></tr>
+      <tr><td><code>print_cell</code></td><td><code>(msg)</code></td><td>Log to cell output</td><td class="no">No</td></tr>
+      <tr><td><code>final_answer</code></td><td><code>(answer)</code></td><td>Signal loop exit</td><td class="no">No</td></tr>
+      <tr><td><code>doc_id</code></td><td><code>() -&gt; String</code></td><td>Active document ID</td><td class="yes">Yes</td></tr>
+      <tr><td><code>ctx_chunks</code></td><td><code>(doc_id) -&gt; int</code></td><td>Chunk count for document</td><td class="yes">Yes</td></tr>
+      <tr><td><code>ctx_chunk</code></td><td><code>(doc_id, i) -&gt; String</code></td><td>Get chunk by index</td><td class="yes">Yes</td></tr>
+      <tr><td><code>ctx_search</code></td><td><code>(doc_id, query, k) -&gt; String</code></td><td>BM25 top-k chunks</td><td class="yes">Yes</td></tr>
+      <tr><td><code>ctx_semantic</code></td><td><code>(doc_id, query, k) -&gt; String</code></td><td>Embedding search top-k</td><td class="yes">Yes</td></tr>
+      <tr><td><code>ctx_hybrid</code></td><td><code>(doc_id, query, k) -&gt; String</code></td><td>RRF hybrid top-k</td><td class="yes">Yes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Error Model</h2>
+  <table>
+    <thead><tr><th>Error</th><th>Cause</th><th>Behavior</th></tr></thead>
+    <tbody>
+      <tr><td><code>MaxDepthExceeded</code></td><td>Recursion depth &gt; max_depth</td><td>Hard error, propagates up</td></tr>
+      <tr><td><code>MaxIterationsExceeded</code></td><td>Loop ran &gt; max_iterations without <code>final_answer</code></td><td>Hard error</td></tr>
+      <tr><td><code>ScriptError</code></td><td>Rhai compile/runtime failure</td><td>Fed back to model, up to 3 retries, then hard error</td></tr>
+      <tr><td><code>ProviderError</code></td><td>LLM API failure</td><td>Non-retryable, propagates immediately</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>rslm &middot; <a href="https://github.com/89jobrien/rslm">Source on GitHub</a> &middot; Last updated: 2026-05-08</footer>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="760" height="340">
+  <defs>
+    <style>
+      text { font-family: 'SF Mono', 'JetBrains Mono', monospace; fill: #dfe1e8; }
+      .label { font-size: 12px; }
+      .sublabel { font-size: 10px; fill: #7a7f94; }
+      .arrow { stroke: #1f2330; stroke-width: 1.5; fill: none; marker-end: url(#dep); }
+    </style>
+    <marker id="dep" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#1f2330"/>
+    </marker>
+  </defs>
+  <rect width="760" height="340" fill="#0b0d11"/>
+
+  <text x="380" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#dfe1e8">Workspace Crate Graph</text>
+
+  <!-- rslm-cli -->
+  <rect x="290" y="48" width="180" height="60" rx="6" fill="#14171f" stroke="#5b8def" stroke-width="1.5"/>
+  <text x="380" y="73" text-anchor="middle" class="label" font-weight="700" fill="#5b8def">rslm-cli</text>
+  <text x="380" y="91" text-anchor="middle" class="sublabel">binary · clap · interactive</text>
+  <text x="380" y="104" text-anchor="middle" class="sublabel">ingest subcommand</text>
+
+  <!-- rslm-core -->
+  <rect x="80" y="160" width="200" height="60" rx="6" fill="#14171f" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="180" y="185" text-anchor="middle" class="label" font-weight="700" fill="#a78bfa">rslm-core</text>
+  <text x="180" y="203" text-anchor="middle" class="sublabel">Rlm loop · Rhai engine</text>
+  <text x="180" y="216" text-anchor="middle" class="sublabel">Notebook · protocol</text>
+
+  <!-- rslm-providers -->
+  <rect x="480" y="160" width="200" height="60" rx="6" fill="#14171f" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="580" y="185" text-anchor="middle" class="label" font-weight="700" fill="#f59e0b">rslm-providers</text>
+  <text x="580" y="203" text-anchor="middle" class="sublabel">LlmProvider trait</text>
+  <text x="580" y="216" text-anchor="middle" class="sublabel">OpenAI · Anthropic</text>
+
+  <!-- rslm-store (new) -->
+  <rect x="265" y="160" width="210" height="60" rx="6" fill="#14171f" stroke="#34d399" stroke-width="1.5"/>
+  <text x="370" y="181" text-anchor="middle" class="label" font-weight="700" fill="#34d399">rslm-store</text>
+  <text x="370" y="199" text-anchor="middle" class="sublabel" fill="#34d399">NEW — #4 #5 #6 #7 #8 #9</text>
+  <text x="370" y="212" text-anchor="middle" class="sublabel">ChunkStore · BM25 · HNSW · Embed</text>
+
+  <!-- rslm-harness -->
+  <rect x="290" y="270" width="180" height="50" rx="6" fill="#14171f" stroke="#1f2330" stroke-width="1.5"/>
+  <text x="380" y="293" text-anchor="middle" class="label" font-weight="600" fill="#7a7f94">rslm-harness</text>
+  <text x="380" y="311" text-anchor="middle" class="sublabel">test mock provider</text>
+
+  <!-- Arrows: cli → core -->
+  <line x1="330" y1="108" x2="230" y2="158" class="arrow"/>
+  <!-- cli → providers -->
+  <line x1="430" y1="108" x2="530" y2="158" class="arrow"/>
+  <!-- cli → store -->
+  <line x1="380" y1="108" x2="375" y2="158" class="arrow" stroke="#34d399"/>
+  <!-- core → providers -->
+  <line x1="280" y1="190" x2="478" y2="190" class="arrow" stroke="#1f2330"/>
+  <!-- core → store (optional) -->
+  <line x1="280" y1="200" x2="263" y2="200" class="arrow" stroke="#34d399"/>
+  <!-- harness → core -->
+  <line x1="340" y1="270" x2="220" y2="222" class="arrow"/>
+  <!-- harness → providers -->
+  <line x1="420" y1="270" x2="540" y2="222" class="arrow"/>
+
+  <!-- Legend -->
+  <rect x="30" y="290" width="12" height="12" rx="2" fill="none" stroke="#34d399" stroke-width="1.5"/>
+  <text x="48" y="301" class="sublabel" fill="#34d399">new crate (this sprint)</text>
+  <rect x="170" y="290" width="12" height="12" rx="2" fill="none" stroke="#5b8def" stroke-width="1.5"/>
+  <text x="188" y="301" class="sublabel">existing crate</text>
+</svg>

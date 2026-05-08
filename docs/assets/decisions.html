@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>rslm &mdash; Design Decisions</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="brand"><span>rs</span>lm</a>
+  <a href="index.html">Overview</a>
+  <a href="architecture.html">Architecture</a>
+  <a href="features.html">Features</a>
+  <a href="decisions.html" class="active">Decisions</a>
+  <a href="roadmap.html">Roadmap</a>
+</nav>
+
+<div class="page">
+  <h1>Design Decisions</h1>
+  <p class="subtitle">Key architectural choices, tradeoffs considered, and rationale.</p>
+
+  <!-- D-001 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-001</span>
+      <strong>Rhai over Python for the scripting layer</strong>
+      <span class="issue-ref">spec 2026-04-23</span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      The Zhang &amp; Khattab paper uses Python as the REPL environment. rslm uses
+      <a href="https://rhai.rs">Rhai</a> — an embedded Rust scripting language — instead.
+    </p>
+    <p><strong>Why:</strong> No subprocess, no Python runtime dependency. Rhai runs in-process,
+    shares memory with the host, and enforces a bounded operation count (<code>set_max_operations</code>).
+    Scripts are sandboxed without any OS-level isolation. The API surface is identical to what the
+    paper describes — the model writes short imperative scripts to query context.</p>
+    <p><strong>Tradeoff:</strong> The model must write valid Rhai rather than Python. GPT-4o and
+    Claude produce correct Rhai with the system prompt as guide; the self-correction loop handles
+    occasional syntax errors. Rhai lacks Python's data manipulation ecosystem (no <code>json</code>,
+    no <code>re</code> stdlib), but rslm provides the primitives the model actually needs
+    (<code>ctx_grep</code>, <code>ctx_slice</code>, etc.) as registered functions.</p>
+  </div>
+
+  <!-- D-002 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-002</span>
+      <strong>Context never sent to the LLM directly</strong>
+      <span class="issue-ref">spec 2026-04-23</span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      Raw context is stored in the Rhai engine's state. The model only sees what it explicitly
+      extracts via registered functions. The full text never appears in a message.
+    </p>
+    <p><strong>Why:</strong> This is the core RLM invariant. It forces the model to reason about
+    what it needs rather than pattern-matching over a wall of text. It also bounds token usage —
+    large contexts don't inflate every API call.</p>
+    <p><strong>Tradeoff:</strong> The model must write multiple scripts to build up enough
+    information for an answer. For small contexts this is slower and more expensive than a direct
+    call. rslm is intended for contexts that exceed the model's window, not as a general-purpose
+    wrapper.</p>
+  </div>
+
+  <!-- D-003 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-003</span>
+      <strong>Blocking recursion via <code>spawn_blocking</code> + new current-thread runtime</strong>
+      <span class="issue-ref">spec 2026-04-23</span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      <code>rlm_call(q, ctx)</code> is a synchronous Rhai function. The child <code>Rlm::run</code>
+      is async. The bridge: <code>tokio::runtime::Builder::new_current_thread().block_on(...)</code>
+      inside a <code>spawn_blocking</code> call.
+    </p>
+    <p><strong>Why:</strong> Rhai functions cannot be async. The Rhai engine is not <code>Send</code>
+    in its default configuration — rslm uses <code>features = ["sync"]</code> to enable
+    <code>Send + Sync</code> engine closures. Creating a new single-threaded runtime per child is
+    the simplest correct bridge given these constraints.</p>
+    <p><strong>Tradeoff:</strong> Sequential children only. Parallel <code>rlm_call</code> dispatch
+    (multiple concurrent sub-queries) is not supported. This is listed as a non-goal in the spec
+    and deferred to future work.</p>
+    <p><strong>Test implication:</strong> Tests that exercise <code>rlm_call</code> end-to-end must
+    be <code>#[ignore]</code>d or use <code>spawn_blocking</code> — calling
+    <code>block_on</code> inside an existing Tokio test runtime panics.</p>
+  </div>
+
+  <!-- D-004 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-004</span>
+      <strong>Fresh <code>Scope::new()</code> per script execution — no persistent state</strong>
+      <span class="issue-ref">spec 2026-04-23</span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      Each Rhai script runs in a new empty scope. Variables defined in one script are not
+      visible in the next.
+    </p>
+    <p><strong>Why:</strong> Simplicity and reproducibility. The model must be explicit about
+    what it carries forward — it either calls <code>print_cell</code> (which appends to cell
+    output, which becomes message history) or it re-extracts from context. This matches the
+    paper's design.</p>
+    <p><strong>Tradeoff:</strong> The model cannot accumulate a running data structure across
+    cells. For tasks requiring multi-step aggregation it must carry state through
+    <code>print_cell</code> output or inline JSON strings passed between <code>rlm_call</code>
+    invocations. This is workable but slightly awkward for complex aggregations.</p>
+  </div>
+
+  <!-- D-005 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-005</span>
+      <strong>Trait-based provider abstraction, env-var selected at runtime</strong>
+      <span class="issue-ref">spec 2026-04-23</span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      <code>LlmProvider: Send + Sync</code> with a single <code>async fn complete</code> method.
+      Two impls: <code>OpenAiProvider</code> and <code>AnthropicProvider</code>. Selected via
+      <code>RSLM_PROVIDER</code> + <code>RSLM_MODEL</code> or CLI flags.
+    </p>
+    <p><strong>Why:</strong> Keeps <code>rslm-core</code> and <code>rslm-cli</code> independent of
+    specific API clients. Adding a new provider (Ollama, Gemini) requires only a new impl file in
+    <code>rslm-providers</code> and a match arm in the CLI. The core loop is unchanged.</p>
+    <p><strong>Tradeoff:</strong> rlm-rs hardcodes a root/sub-agent model tier (Opus + Haiku).
+    rslm uses a single provider throughout the recursion tree — the same model handles root and
+    child instances. Tiered models (expensive root, cheap children) would require passing a
+    separate child provider, which is possible but not yet implemented.</p>
+  </div>
+
+  <!-- D-006 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-006</span>
+      <strong>Optional <code>ChunkStore</code> — zero behavior change when absent</strong>
+      <span class="issue-ref"><a href="https://github.com/89jobrien/rslm/issues/4">#4</a> <a href="https://github.com/89jobrien/rslm/issues/5">#5</a></span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      <code>build_engine()</code> accepts <code>store: Option&lt;Arc&lt;ChunkStore&gt;&gt;</code>.
+      When <code>None</code>, no chunk Rhai functions are registered and no system prompt addendum
+      is injected. Existing callers compile and behave identically.
+    </p>
+    <p><strong>Why:</strong> rslm's primary value is the RLM loop, not chunking. Chunking is an
+    additive enhancement for large persistent corpora. Making it optional preserves the simple
+    fast path for users who just want to run a query against inline context.</p>
+    <p><strong>Tradeoff:</strong> The <code>Rlm</code> struct grows fields (<code>store</code>,
+    <code>embedder</code>, <code>doc_id</code>). A builder pattern or separate constructor is
+    preferred over breaking the existing <code>Rlm::new()</code> signature.</p>
+  </div>
+
+  <!-- D-007 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-007</span>
+      <strong>Inline BM25 — no external scorer crate</strong>
+      <span class="issue-ref"><a href="https://github.com/89jobrien/rslm/issues/6">#6</a></span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      BM25 is implemented from scratch in ~120 lines in <code>bm25.rs</code> with no external
+      dependency. Parameters: k1=1.5, b=0.75 (standard BM25 defaults).
+    </p>
+    <p><strong>Why:</strong> The BM25 algorithm is well-defined, short, and has no external
+    API surface to track. Adding a crate dependency for &lt;150 lines of math is not warranted.
+    It also avoids transitive dependency conflicts in the workspace.</p>
+    <p><strong>Tradeoff:</strong> No stemming, no stopword removal, no language-aware tokenization.
+    Tokenization is lowercase + split on non-alphanumeric. Sufficient for the use case
+    (keyword search over text chunks). If richer NLP is needed later, swapping in a crate-backed
+    impl is straightforward given the <code>Bm25Index</code> API boundary.</p>
+  </div>
+
+  <!-- D-008 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-008</span>
+      <strong>Per-chunk idempotent ingest via <code>INSERT OR REPLACE ON (doc_id, idx)</code></strong>
+      <span class="issue-ref"><a href="https://github.com/89jobrien/rslm/issues/5">#5</a></span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      The <code>chunks</code> table has <code>UNIQUE(doc_id, idx)</code>. Ingest uses
+      <code>INSERT OR REPLACE</code>. Re-running ingest after a partial failure or crash is safe —
+      existing chunks are overwritten, missing ones are inserted.
+    </p>
+    <p><strong>Why:</strong> Whole-doc skip ("skip if doc_id exists") would leave partially-ingested
+    documents permanently broken after a crash mid-ingest. Per-chunk upsert is strictly safer
+    at negligible extra cost.</p>
+  </div>
+
+  <!-- D-009 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-009</span>
+      <strong>RRF constant k=60 (standard default)</strong>
+      <span class="issue-ref"><a href="https://github.com/89jobrien/rslm/issues/5">#5</a></span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      Reciprocal Rank Fusion: <code>score(d) = Σ_r 1/(60 + rank_r(d))</code>. The constant 60
+      is the value from the original RRF paper (Cormack et al., 2009) and the most common default
+      in production search systems.
+    </p>
+    <p><strong>Why:</strong> k=60 gives good empirical performance across a wide range of corpora.
+    Making it configurable adds API complexity for marginal gain at this stage. It can be
+    exposed as a parameter if tuning becomes necessary.</p>
+  </div>
+
+  <!-- D-010 -->
+  <div class="card">
+    <div>
+      <span class="decision-tag">D-010</span>
+      <strong>HNSW unit tests use 128-dim vectors, not 4-dim</strong>
+      <span class="issue-ref"><a href="https://github.com/89jobrien/rslm/issues/9">#9</a></span>
+    </div>
+    <p style="margin-top:0.8rem;">
+      The HNSW unit test generates ~20 random 128-dimensional unit vectors rather than 4-dim.
+    </p>
+    <p><strong>Why:</strong> HNSW is an approximate nearest-neighbor algorithm. Its graph
+    construction and traversal heuristics behave differently at very low dimensions — 4-dim spaces
+    are nearly exhaustively searchable and don't exercise the approximation behavior the index is
+    designed for. 128-dim is a realistic minimum for embedding-like vectors and produces
+    meaningful ANN test coverage.</p>
+  </div>
+</div>
+
+<footer>rslm &middot; <a href="https://github.com/89jobrien/rslm">Source on GitHub</a> &middot; Last updated: 2026-05-08</footer>
+</body>
+</html>

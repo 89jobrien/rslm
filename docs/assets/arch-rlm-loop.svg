@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
+  <defs>
+    <style>
+      text { font-family: 'SF Mono', 'JetBrains Mono', monospace; fill: #dfe1e8; }
+      .label { font-size: 12px; }
+      .sublabel { font-size: 10px; fill: #7a7f94; }
+      .arrow { stroke: #7a7f94; stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+      .arrow-accent { stroke: #5b8def; stroke-width: 1.5; fill: none; marker-end: url(#arr-accent); }
+      .box { fill: #14171f; stroke: #1f2330; stroke-width: 1.5; rx: 6; }
+      .box-accent { fill: #14171f; stroke: #5b8def; stroke-width: 1.5; }
+      .box-green { fill: #14171f; stroke: #34d399; stroke-width: 1.5; }
+      .box-orange { fill: #14171f; stroke: #f59e0b; stroke-width: 1.5; }
+    </style>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#7a7f94"/>
+    </marker>
+    <marker id="arr-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#5b8def"/>
+    </marker>
+  </defs>
+  <rect width="800" height="420" fill="#0b0d11"/>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#dfe1e8">RLM Inference Loop</text>
+
+  <!-- LLM Provider box -->
+  <rect x="300" y="55" width="200" height="52" rx="6" class="box-accent"/>
+  <text x="400" y="78" text-anchor="middle" class="label" font-weight="600" fill="#5b8def">LLM Provider</text>
+  <text x="400" y="96" text-anchor="middle" class="sublabel">OpenAI / Anthropic</text>
+
+  <!-- Arrow: provider → script -->
+  <line x1="400" y1="107" x2="400" y2="148" class="arrow-accent"/>
+  <text x="410" y="133" class="sublabel">Rhai script</text>
+
+  <!-- Rhai Engine box -->
+  <rect x="270" y="150" width="260" height="52" rx="6" class="box-accent"/>
+  <text x="400" y="173" text-anchor="middle" class="label" font-weight="600" fill="#5b8def">Rhai Engine</text>
+  <text x="400" y="191" text-anchor="middle" class="sublabel">ctx_slice · ctx_grep · ctx_search · rlm_call</text>
+
+  <!-- Arrow: engine → output -->
+  <line x1="400" y1="202" x2="400" y2="243" class="arrow"/>
+  <text x="410" y="228" class="sublabel">cell output</text>
+
+  <!-- Notebook box -->
+  <rect x="300" y="245" width="200" height="52" rx="6" class="box"/>
+  <text x="400" y="268" text-anchor="middle" class="label" font-weight="600">Notebook</text>
+  <text x="400" y="286" text-anchor="middle" class="sublabel">Vec&lt;Cell&gt; (script, output)</text>
+
+  <!-- Arrow: notebook → provider (loop back) -->
+  <path d="M530,271 Q640,271 640,81 Q640,81 501,81" class="arrow" stroke="#7a7f94"/>
+  <text x="645" y="180" text-anchor="middle" class="sublabel" transform="rotate(90,645,180)">message history</text>
+
+  <!-- rlm_call → child -->
+  <rect x="30" y="150" width="180" height="52" rx="6" class="box-orange"/>
+  <text x="120" y="173" text-anchor="middle" class="label" font-weight="600" fill="#f59e0b">Child Rlm (depth+1)</text>
+  <text x="120" y="191" text-anchor="middle" class="sublabel">isolated scope</text>
+
+  <!-- Arrow: engine → child -->
+  <line x1="270" y1="176" x2="213" y2="176" class="arrow" stroke="#f59e0b" marker-end="url(#arr)"/>
+  <text x="241" y="168" text-anchor="middle" class="sublabel" fill="#f59e0b">rlm_call()</text>
+
+  <!-- Arrow: child → engine (return) -->
+  <path d="M120,202 Q120,230 270,230 Q270,202 270,202" class="arrow" stroke="#f59e0b" marker-end="url(#arr)"/>
+  <text x="195" y="248" text-anchor="middle" class="sublabel" fill="#f59e0b">answer string</text>
+
+  <!-- ChunkStore box -->
+  <rect x="560" y="150" width="190" height="52" rx="6" class="box-green"/>
+  <text x="655" y="173" text-anchor="middle" class="label" font-weight="600" fill="#34d399">ChunkStore (opt)</text>
+  <text x="655" y="191" text-anchor="middle" class="sublabel">BM25 · HNSW · SQLite</text>
+
+  <!-- Arrow: engine → store -->
+  <line x1="530" y1="176" x2="558" y2="176" class="arrow" stroke="#34d399" marker-end="url(#arr)"/>
+  <text x="544" y="168" text-anchor="middle" class="sublabel" fill="#34d399">ctx_hybrid()</text>
+
+  <!-- final_answer box -->
+  <rect x="300" y="340" width="200" height="42" rx="6" class="box-green"/>
+  <text x="400" y="366" text-anchor="middle" class="label" font-weight="600" fill="#34d399">final_answer()</text>
+
+  <!-- Arrow: notebook → final -->
+  <line x1="400" y1="297" x2="400" y2="338" class="arrow" stroke="#34d399" marker-end="url(#arr)"/>
+
+  <!-- depth limit note -->
+  <text x="400" y="403" text-anchor="middle" class="sublabel">depth limit · max_iterations guard · script error self-correction (3 retries)</text>
+</svg>

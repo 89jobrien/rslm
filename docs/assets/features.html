@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>rslm &mdash; Features</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="brand"><span>rs</span>lm</a>
+  <a href="index.html">Overview</a>
+  <a href="architecture.html">Architecture</a>
+  <a href="features.html" class="active">Features</a>
+  <a href="decisions.html">Decisions</a>
+  <a href="roadmap.html">Roadmap</a>
+</nav>
+
+<div class="page">
+  <h1>Feature Matrix</h1>
+  <p class="subtitle">Current implementation status across all rslm capabilities. Last updated: 2026-05-08.</p>
+
+  <h2>Core RLM Loop</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Rhai scripting engine</td><td><span class="pill pill-green">Done</span></td><td>Sync engine with <code>features = ["sync"]</code></td></tr>
+      <tr><td>Notebook accumulation</td><td><span class="pill pill-green">Done</span></td><td><code>Vec&lt;Cell&gt;</code> — script + output per step</td></tr>
+      <tr><td>Recursive <code>rlm_call</code></td><td><span class="pill pill-green">Done</span></td><td>Child Rlm via <code>spawn_blocking</code> + new current-thread runtime</td></tr>
+      <tr><td>Depth limit</td><td><span class="pill pill-green">Done</span></td><td>Default 5, configurable via <code>--max-depth</code></td></tr>
+      <tr><td>Iteration limit</td><td><span class="pill pill-green">Done</span></td><td>Default 20, configurable via <code>--max-iterations</code></td></tr>
+      <tr><td>Script error self-correction</td><td><span class="pill pill-green">Done</span></td><td>Error fed back to model, up to 3 retries per cell</td></tr>
+      <tr><td>Code fence stripping</td><td><span class="pill pill-green">Done</span></td><td>Strips <code>```rhai</code> and bare <code>```</code> fences</td></tr>
+      <tr><td>Verbose trace output</td><td><span class="pill pill-green">Done</span></td><td><code>[depth=N] &gt;&gt;</code> / <code>&lt;&lt;</code> / <code>FINAL:</code></td></tr>
+      <tr><td>Async parallel rlm_call</td><td><span class="pill pill-muted">Planned</span></td><td>Blocking only for now; parallel dispatch is future work</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Rhai Context API</h2>
+  <table>
+    <thead><tr><th>Function</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>ctx_len()</code></td><td><span class="pill pill-green">Done</span></td><td></td></tr>
+      <tr><td><code>ctx_slice(start, end)</code></td><td><span class="pill pill-green">Done</span></td><td>Char-boundary safe</td></tr>
+      <tr><td><code>ctx_grep(pattern)</code></td><td><span class="pill pill-green">Done</span></td><td>Regex via <code>regex</code> crate</td></tr>
+      <tr><td><code>print_cell(msg)</code></td><td><span class="pill pill-green">Done</span></td><td></td></tr>
+      <tr><td><code>final_answer(s)</code></td><td><span class="pill pill-green">Done</span></td><td></td></tr>
+      <tr><td><code>doc_id()</code></td><td><span class="pill pill-green">Done</span></td><td>Registered when <code>store</code> feature active (#4)</td></tr>
+      <tr><td><code>ctx_chunks(doc_id)</code></td><td><span class="pill pill-green">Done</span></td><td>Requires <code>--store</code> flag (#4, #5)</td></tr>
+      <tr><td><code>ctx_chunk(doc_id, i)</code></td><td><span class="pill pill-green">Done</span></td><td>Requires <code>--store</code> flag (#4, #5)</td></tr>
+      <tr><td><code>ctx_search(doc_id, q, k)</code></td><td><span class="pill pill-green">Done</span></td><td>BM25 over stored chunks (#4, #6)</td></tr>
+      <tr><td><code>ctx_semantic(doc_id, q, k)</code></td><td><span class="pill pill-muted">Planned</span></td><td>Direct embedding search (ctx_hybrid is preferred)</td></tr>
+      <tr><td><code>ctx_hybrid(doc_id, q, k)</code></td><td><span class="pill pill-green">Done</span></td><td>RRF: BM25 + cosine, falls back to BM25 if no embedder (#4, #5)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>LLM Providers</h2>
+  <table>
+    <thead><tr><th>Provider</th><th>Status</th><th>Default Model</th><th>Key Env Var</th></tr></thead>
+    <tbody>
+      <tr><td>OpenAI</td><td><span class="pill pill-green">Done</span></td><td><code>gpt-4o</code></td><td><code>OPENAI_API_KEY</code></td></tr>
+      <tr><td>Anthropic</td><td><span class="pill pill-green">Done</span></td><td><code>claude-sonnet-4-6</code></td><td><code>ANTHROPIC_API_KEY</code></td></tr>
+      <tr><td>Local / Ollama</td><td><span class="pill pill-muted">Planned</span></td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Embedding Providers</h2>
+  <table>
+    <thead><tr><th>Provider</th><th>Status</th><th>Model</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>OpenAiEmbedder</code></td><td><span class="pill pill-green">Done</span></td><td><code>text-embedding-3-small</code></td><td>Batched 100/call (#8)</td></tr>
+      <tr><td><code>LocalEmbedder</code></td><td><span class="pill pill-muted">Planned</span></td><td>fastembed</td><td>Behind <code>local-embed</code> feature flag</td></tr>
+    </tbody>
+  </table>
+
+  <h2>rslm-store</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Status</th><th>Issue</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Crate scaffold + SQLite schema</td><td><span class="pill pill-green">Done</span></td><td><a href="https://github.com/89jobrien/rslm/issues/5">#5</a></td><td><code>rusqlite</code> bundled; <code>UNIQUE(doc_id, idx)</code> idempotent ingest</td></tr>
+      <tr><td>Chunking strategies</td><td><span class="pill pill-green">Done</span></td><td><a href="https://github.com/89jobrien/rslm/issues/5">#5</a></td><td>Fixed, Paragraph, Line</td></tr>
+      <tr><td>BM25 scorer</td><td><span class="pill pill-green">Done</span></td><td><a href="https://github.com/89jobrien/rslm/issues/6">#6</a></td><td>Inline, no dep; k1=1.5, b=0.75; 8 tests</td></tr>
+      <tr><td>EmbedProvider trait</td><td><span class="pill pill-green">Done</span></td><td><a href="https://github.com/89jobrien/rslm/issues/8">#8</a></td><td>Async trait; OpenAI batched; 2 tests</td></tr>
+      <tr><td>HNSW index</td><td><span class="pill pill-green">Done</span></td><td><a href="https://github.com/89jobrien/rslm/issues/9">#9</a></td><td><code>instant-distance</code>; cosine; lazy rebuild; 128-dim tests</td></tr>
+      <tr><td>RRF merge</td><td><span class="pill pill-green">Done</span></td><td><a href="https://github.com/89jobrien/rslm/issues/5">#5</a></td><td>k=60; fuses BM25 + cosine ranked lists</td></tr>
+      <tr><td>Rhai fn wiring in rslm-core</td><td><span class="pill pill-green">Done</span></td><td><a href="https://github.com/89jobrien/rslm/issues/4">#4</a></td><td><code>store</code> feature flag; zero behavior change when absent</td></tr>
+    </tbody>
+  </table>
+
+  <h2>CLI</h2>
+  <table>
+    <thead><tr><th>Command / Flag</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>rslm query --context-file</code></td><td><span class="pill pill-green">Done</span></td><td></td></tr>
+      <tr><td><code>rslm query --context</code></td><td><span class="pill pill-green">Done</span></td><td>Inline context string</td></tr>
+      <tr><td><code>rslm interactive</code></td><td><span class="pill pill-green">Done</span></td><td>REPL-style session</td></tr>
+      <tr><td><code>rslm query --store</code></td><td><span class="pill pill-green">Done</span></td><td>Enables chunk Rhai fns; auto-ingests if doc absent (#7)</td></tr>
+      <tr><td><code>rslm query --doc-id</code></td><td><span class="pill pill-green">Done</span></td><td>Defaults to context file path (#7)</td></tr>
+      <tr><td><code>rslm ingest</code></td><td><span class="pill pill-green">Done</span></td><td>Chunks + embeds doc into store; prints chunk count (#7)</td></tr>
+      <tr><td><code>--verbose</code></td><td><span class="pill pill-green">Done</span></td><td>Streams <code>[depth=N]</code> trace to terminal</td></tr>
+      <tr><td><code>--max-depth</code>, <code>--max-iterations</code></td><td><span class="pill pill-green">Done</span></td><td></td></tr>
+      <tr><td><code>--embed-model</code></td><td><span class="pill pill-green">Done</span></td><td>Default <code>text-embedding-3-small</code> (#7)</td></tr>
+      <tr><td>NDJSON output mode</td><td><span class="pill pill-muted">Planned</span></td><td>Shell pipeline composability</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Testing</h2>
+  <table>
+    <thead><tr><th>Test type</th><th>Status</th><th>Count</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>rslm-core unit tests</td><td><span class="pill pill-green">Done</span></td><td>—</td><td>Rhai fns, notebook, depth limit, StepResult parsing</td></tr>
+      <tr><td>rslm-providers mock tests</td><td><span class="pill pill-green">Done</span></td><td>—</td><td>Mock LlmProvider with canned scripts</td></tr>
+      <tr><td>rslm-providers live tests</td><td><span class="pill pill-green">Done</span></td><td>—</td><td>Behind <code>live-tests</code> feature; real API smoke test</td></tr>
+      <tr><td>rslm-cli integration tests</td><td><span class="pill pill-green">Done</span></td><td>—</td><td>HarnessProvider injected via test helper</td></tr>
+      <tr><td>rslm-store unit tests</td><td><span class="pill pill-green">Done</span></td><td>24</td><td>BM25 (8), HNSW (3), embed (2), store/chunk/RRF (11)</td></tr>
+      <tr><td>rslm-store live embed tests</td><td><span class="pill pill-green">Done</span></td><td>—</td><td>Behind <code>live-tests</code> feature flag</td></tr>
+      <tr><td>Workspace total</td><td><span class="pill pill-green">Done</span></td><td>62 pass, 1 ignored</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Legend</h2>
+  <div class="grid-3">
+    <div class="card"><strong class="yes">Done</strong><p style="margin-top:0.3rem;color:var(--muted);font-size:0.85rem;">Implemented, tested, on main.</p></div>
+    <div class="card"><strong class="no">Planned</strong><p style="margin-top:0.3rem;color:var(--muted);font-size:0.85rem;">Scoped but not yet started.</p></div>
+    <div class="card"><strong class="wip">In progress</strong><p style="margin-top:0.3rem;color:var(--muted);font-size:0.85rem;">Active sprint — open GitHub issue.</p></div>
+  </div>
+</div>
+
+<footer>rslm &middot; <a href="https://github.com/89jobrien/rslm">Source on GitHub</a> &middot; Last updated: 2026-05-08</footer>
+</body>
+</html>
