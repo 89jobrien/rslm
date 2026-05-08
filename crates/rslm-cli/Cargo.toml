@@ -10,7 +10,8 @@ name = "rslm"
 path = "src/main.rs"
 
 [dependencies]
-rslm-core.workspace = true
+rslm-core = { path = "../rslm-core", features = ["store"] }
+rslm-store = { path = "../rslm-store" }
 rslm-providers.workspace = true
 tokio.workspace = true
 anyhow.workspace = true

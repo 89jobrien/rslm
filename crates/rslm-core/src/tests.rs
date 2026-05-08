@@ -220,6 +220,12 @@ mod rlm_tests {
             max_depth: 5,
             max_iterations: 20,
             verbose: false,
+            #[cfg(feature = "store")]
+            store: None,
+            #[cfg(feature = "store")]
+            embedder: None,
+            #[cfg(feature = "store")]
+            doc_id: None,
         };
         let result = rlm.run("q", "c").await;
         assert!(matches!(
@@ -352,6 +358,12 @@ final_answer(ans)
             max_depth: 5,
             max_iterations: 20,
             verbose: false,
+            #[cfg(feature = "store")]
+            store: None,
+            #[cfg(feature = "store")]
+            embedder: None,
+            #[cfg(feature = "store")]
+            doc_id: None,
         };
         let child = Rlm {
             provider: Arc::clone(&parent.provider),
@@ -359,6 +371,12 @@ final_answer(ans)
             max_depth: parent.max_depth,
             max_iterations: parent.max_iterations,
             verbose: parent.verbose,
+            #[cfg(feature = "store")]
+            store: None,
+            #[cfg(feature = "store")]
+            embedder: None,
+            #[cfg(feature = "store")]
+            doc_id: None,
         };
         assert_eq!(child.depth, 3);
         assert_eq!(child.max_depth, 5);
