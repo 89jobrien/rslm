@@ -1,19 +1,20 @@
 project: rslm
-workspace: rslm
+id: rslm
+updated: 2026-05-08
+items: []
 log:
-  - date: 2026-04-24
-    summary: |
-      Initial project setup and design documentation committed. rslm is a Rust
-      implementation of Recursive Language Models (RLM) using Rhai for context
-      interaction. Core design spec covers architecture (3-crate workspace:
-      rslm-core, rslm-llm, rslm-cli), RLM loop with recursive dispatch, Rhai
-      environment setup, and trait-based LLM provider abstraction. No code
-      commits yet — spec-only phase.
-    commits:
-      - e62e592
-    author: joe
-    scope: docs
-status: pending
+- date: 2026-04-24
+  summary: |
+    Initial project setup and design documentation committed. rslm is a Rust
+    implementation of Recursive Language Models (RLM) using Rhai for context
+    interaction. Core design spec covers architecture (3-crate workspace:
+    rslm-core, rslm-llm, rslm-cli), RLM loop with recursive dispatch, Rhai
+    environment setup, and trait-based LLM provider abstraction. No code
+    commits yet — spec-only phase.
+  commits:
+  - e62e592
+  author: joe
+  scope: docs
 handoff_date: 2026-04-24
 last_updated: 2026-04-24
 notes: |
@@ -21,3 +22,5 @@ notes: |
   - 3-crate workspace planned: rslm-core (RLM engine), rslm-llm (provider layer), rslm-cli
   - Next phase: implement core RLM struct and Rhai environment setup
   - No active blockers
+status: pending
+workspace: rslm
