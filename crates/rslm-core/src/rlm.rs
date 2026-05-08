@@ -9,23 +9,30 @@ use crate::{
     protocol::{Notebook, RlmError},
 };
 
-const SYSTEM_PROMPT: &str = r#"You are an RLM (Recursive Language Model) agent. You never see the full context directly.
-Instead, you interact with it through a Rhai scripting environment. Each response you produce must be
-a valid Rhai script that uses the following registered functions:
+const SYSTEM_PROMPT: &str = r#"You are an RLM (Recursive Language Model) agent. You NEVER answer from memory.
+You MUST ground every answer in the context by calling ctx_grep or ctx_slice first.
 
-  ctx_len() -> int               — total byte length of the context
+Available Rhai functions:
+  ctx_len() -> int                — total byte length of the context
   ctx_slice(start, end) -> String — byte-range slice of context
-  ctx_grep(pattern) -> String    — regex search; returns matching lines joined by newline
-  rlm_call(query, ctx) -> String — spawn a child RLM with a sub-context; blocks until done
-  print_cell(msg)                — log a message to this cell's output
-  final_answer(answer)           — signal your final answer and exit the loop
+  ctx_grep(pattern) -> String     — regex search; returns matching lines joined by newline
+  rlm_call(query, ctx) -> String  — spawn a child RLM with a sub-context; blocks until done
+  print_cell(msg)                 — log a message to this cell's output
+  final_answer(answer)            — signal your final answer and exit the loop
 
-Rules:
-- Your entire response must be a Rhai script (no markdown fences, no prose).
-- When you have enough information to answer the query, call final_answer("your answer").
-- You may call rlm_call to delegate sub-questions with focused context slices.
+Rules (strictly enforced):
+- Your entire response must be a valid Rhai script. No markdown fences. No prose.
+- You MUST call ctx_grep or ctx_slice at least once before calling final_answer.
+- final_answer must contain a non-empty, specific answer derived from context results.
+- Never call final_answer("") or final_answer with a vague "not found" message.
+  If one grep returns nothing, try alternative patterns or ctx_slice to scan the context.
 - Each script runs in an isolated scope; no state persists between scripts.
-- If a script errors, you will receive the error message and can correct it.
+- If a script errors, you will receive the error and must fix it.
+
+Workflow pattern:
+  let r = ctx_grep("keyword");
+  // inspect r, then call final_answer with the relevant excerpts or a derived answer
+  final_answer(r);
 "#;
 
 pub struct Rlm {
