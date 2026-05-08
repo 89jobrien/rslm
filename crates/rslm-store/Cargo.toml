@@ -14,3 +14,4 @@ async-trait = { workspace = true }
 async-openai = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
+instant-distance = "0.6"
