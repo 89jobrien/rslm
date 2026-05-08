@@ -113,10 +113,12 @@ mod conformance {
         let run = Harness::run(
             "q",
             ctx,
-            vec![r#"
+            vec![
+                r#"
                 let n = ctx_len();
                 final_answer(n.to_string())
-            "#],
+            "#,
+            ],
         )
         .await
         .unwrap();
@@ -127,13 +129,9 @@ mod conformance {
     #[tokio::test]
     #[serial]
     async fn ctx_slice_returns_substring() {
-        let run = Harness::run(
-            "q",
-            "abcdef",
-            vec![r#"final_answer(ctx_slice(2, 5))"#],
-        )
-        .await
-        .unwrap();
+        let run = Harness::run("q", "abcdef", vec![r#"final_answer(ctx_slice(2, 5))"#])
+            .await
+            .unwrap();
         assert_eq!(run.answer, "cde");
     }
 
@@ -141,13 +139,9 @@ mod conformance {
     #[tokio::test]
     #[serial]
     async fn ctx_slice_out_of_bounds_no_panic() {
-        let run = Harness::run(
-            "q",
-            "abc",
-            vec![r#"final_answer(ctx_slice(100, 200))"#],
-        )
-        .await
-        .unwrap();
+        let run = Harness::run("q", "abc", vec![r#"final_answer(ctx_slice(100, 200))"#])
+            .await
+            .unwrap();
         // Should not panic; result is empty
         assert_eq!(run.answer, "");
     }
@@ -157,13 +151,9 @@ mod conformance {
     #[serial]
     async fn ctx_grep_returns_matching_lines() {
         let ctx = "foo bar\nbaz qux\nfoo baz";
-        let run = Harness::run(
-            "q",
-            ctx,
-            vec![r#"final_answer(ctx_grep("^foo"))"#],
-        )
-        .await
-        .unwrap();
+        let run = Harness::run("q", ctx, vec![r#"final_answer(ctx_grep("^foo"))"#])
+            .await
+            .unwrap();
         assert_eq!(run.answer, "foo bar\nfoo baz");
     }
 
@@ -171,13 +161,9 @@ mod conformance {
     #[tokio::test]
     #[serial]
     async fn ctx_grep_no_match_returns_empty() {
-        let run = Harness::run(
-            "q",
-            "hello world",
-            vec![r#"final_answer(ctx_grep("zzz"))"#],
-        )
-        .await
-        .unwrap();
+        let run = Harness::run("q", "hello world", vec![r#"final_answer(ctx_grep("zzz"))"#])
+            .await
+            .unwrap();
         assert_eq!(run.answer, "");
     }
 
@@ -191,10 +177,7 @@ mod conformance {
         let run = Harness::run(
             "q",
             "ctx",
-            vec![
-                r#"print_cell("logged")"#,
-                r#"final_answer("done")"#,
-            ],
+            vec![r#"print_cell("logged")"#, r#"final_answer("done")"#],
         )
         .await
         .unwrap();
@@ -208,7 +191,10 @@ mod conformance {
             .find(|m| matches!(m.role, Role::User))
             .map(|m| m.content.as_str())
             .unwrap_or("");
-        assert!(second_user.contains("logged"), "expected 'logged' in cell output, got: {second_user}");
+        assert!(
+            second_user.contains("logged"),
+            "expected 'logged' in cell output, got: {second_user}"
+        );
     }
 
     // #16 — rlm_call delegates to child RLM and returns its answer
@@ -240,10 +226,12 @@ mod conformance {
         let run = Harness::run(
             "q",
             "ctx",
-            vec![r#"
+            vec![
+                r#"
                 let result = "computed";
                 final_answer(result)
-            "#],
+            "#,
+            ],
         )
         .await
         .unwrap();

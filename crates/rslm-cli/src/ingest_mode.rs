@@ -12,14 +12,19 @@ pub async fn run(
     let text = std::fs::read_to_string(context_file)?;
     let doc_id = doc_id.unwrap_or(context_file);
     let strategy = match strategy_str {
-        "fixed" => rslm_store::ChunkStrategy::Fixed { size: 1000, overlap: 100 },
+        "fixed" => rslm_store::ChunkStrategy::Fixed {
+            size: 1000,
+            overlap: 100,
+        },
         "line" => rslm_store::ChunkStrategy::Line { count: 50 },
         _ => rslm_store::ChunkStrategy::Paragraph,
     };
     let store = rslm_store::ChunkStore::open(store_path)?;
     let embedder: Option<Arc<dyn rslm_store::EmbedProvider>> =
         if std::env::var("OPENAI_API_KEY").is_ok() {
-            Some(Arc::new(rslm_store::embed::OpenAiEmbedder::new(embed_model)))
+            Some(Arc::new(rslm_store::embed::OpenAiEmbedder::new(
+                embed_model,
+            )))
         } else {
             None
         };

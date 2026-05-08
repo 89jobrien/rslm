@@ -38,7 +38,10 @@ mod tests {
         let merged = rrf_merge(&bm25, &semantic, 5);
 
         // chunk 1 must rank first (appears in both lists)
-        assert_eq!(merged[0].0, 1, "chunk present in both lists should rank first");
+        assert_eq!(
+            merged[0].0, 1,
+            "chunk present in both lists should rank first"
+        );
 
         // Scores must be sorted descending
         for w in merged.windows(2) {

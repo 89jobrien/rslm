@@ -99,7 +99,13 @@ mod tests {
     #[test]
     fn test_fixed_overlap() {
         let text = "a".repeat(100);
-        let chunks = chunk_text(&text, &ChunkStrategy::Fixed { size: 20, overlap: 5 });
+        let chunks = chunk_text(
+            &text,
+            &ChunkStrategy::Fixed {
+                size: 20,
+                overlap: 5,
+            },
+        );
         // Each chunk is 20 chars; consecutive chunks share 5 chars
         for pair in chunks.windows(2) {
             let a = &pair[0];

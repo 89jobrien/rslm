@@ -125,16 +125,14 @@ impl Rlm {
             // Bridge async -> sync without nesting runtimes.
             // block_in_place temporarily removes the current thread from the async executor,
             // allowing a new single-thread runtime to block on the child RLM.
-            tokio::task::block_in_place(move || {
-                match tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                    .expect("build child runtime")
-                    .block_on(child.run(&q, &sub_ctx))
-                {
-                    Ok(ans) => ans,
-                    Err(e) => format!("rlm_call error: {e}"),
-                }
+            tokio::task::block_in_place(move || match tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("build child runtime")
+                .block_on(child.run(&q, &sub_ctx))
+            {
+                Ok(ans) => ans,
+                Err(e) => format!("rlm_call error: {e}"),
             })
         };
 
@@ -175,10 +173,8 @@ impl Rlm {
             format!("Query: {query}")
         };
 
-        let mut messages: Vec<Message> = vec![
-            Message::system(SYSTEM_PROMPT),
-            Message::user(initial_user),
-        ];
+        let mut messages: Vec<Message> =
+            vec![Message::system(SYSTEM_PROMPT), Message::user(initial_user)];
 
         for iteration in 0..self.max_iterations {
             debug!(depth = self.depth, iteration, "RLM step");

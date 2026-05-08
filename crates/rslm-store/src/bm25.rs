@@ -110,7 +110,10 @@ mod tests {
         let index = build_test_index();
         let results = index.search("rust programming", 3);
         assert!(!results.is_empty());
-        assert_eq!(results[0].0, 1, "chunk 1 (rust programming) should rank first");
+        assert_eq!(
+            results[0].0, 1,
+            "chunk 1 (rust programming) should rank first"
+        );
     }
 
     #[test]

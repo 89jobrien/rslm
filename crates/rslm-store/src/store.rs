@@ -75,8 +75,8 @@ impl ChunkStore {
     /// Load all chunks for a doc, sorted by idx.
     pub fn get_chunks(&self, doc_id: &str) -> Result<Vec<(usize, String)>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn
-            .prepare("SELECT idx, text FROM chunks WHERE doc_id = ?1 ORDER BY idx")?;
+        let mut stmt =
+            conn.prepare("SELECT idx, text FROM chunks WHERE doc_id = ?1 ORDER BY idx")?;
         let rows = stmt.query_map(params![doc_id], |row| {
             let idx: i64 = row.get(0)?;
             let text: String = row.get(1)?;
@@ -135,14 +135,11 @@ impl ChunkStore {
         let merged = rrf_merge(&bm25_results, &semantic_results, k);
 
         let chunks = self.get_chunks(doc_id)?;
-        let chunk_map: std::collections::HashMap<usize, String> =
-            chunks.into_iter().collect();
+        let chunk_map: std::collections::HashMap<usize, String> = chunks.into_iter().collect();
 
         let results = merged
             .into_iter()
-            .filter_map(|(idx, _score)| {
-                chunk_map.get(&idx).map(|t| (idx, t.clone()))
-            })
+            .filter_map(|(idx, _score)| chunk_map.get(&idx).map(|t| (idx, t.clone())))
             .collect();
         Ok(results)
     }
@@ -197,7 +194,13 @@ mod tests {
     async fn test_chunk_fixed() {
         // 500 ASCII chars, Fixed{size:100, overlap:20}
         let text: String = "abcdefghij".repeat(50); // 500 bytes
-        let chunks = chunk_text(&text, &ChunkStrategy::Fixed { size: 100, overlap: 20 });
+        let chunks = chunk_text(
+            &text,
+            &ChunkStrategy::Fixed {
+                size: 100,
+                overlap: 20,
+            },
+        );
         // Each chunk should be 100 chars
         for c in &chunks {
             assert!(c.len() <= 100);
@@ -206,7 +209,10 @@ mod tests {
         for pair in chunks.windows(2) {
             let tail = &pair[0][pair[0].len() - 20..];
             let head = &pair[1][..20];
-            assert_eq!(tail, head, "expected 20-char overlap between consecutive chunks");
+            assert_eq!(
+                tail, head,
+                "expected 20-char overlap between consecutive chunks"
+            );
         }
     }
 

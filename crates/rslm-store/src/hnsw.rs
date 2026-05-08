@@ -20,7 +20,10 @@ pub struct HnswIndex {
 impl HnswIndex {
     /// Build from (chunk_id, embedding) pairs.
     pub fn build(embeddings: &[(usize, Vec<f32>)]) -> Self {
-        let points: Vec<EmbedPoint> = embeddings.iter().map(|(_, v)| EmbedPoint(v.clone())).collect();
+        let points: Vec<EmbedPoint> = embeddings
+            .iter()
+            .map(|(_, v)| EmbedPoint(v.clone()))
+            .collect();
         let values: Vec<usize> = embeddings.iter().map(|(id, _)| *id).collect();
         let inner = Builder::default().build(points, values);
         Self { inner }
@@ -50,7 +53,9 @@ mod tests {
         let mut state = seed.wrapping_add(1);
         let mut v: Vec<f32> = (0..dim)
             .map(|_| {
-                state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+                state = state
+                    .wrapping_mul(6364136223846793005)
+                    .wrapping_add(1442695040888963407);
                 // Map high 32 bits to [-1, 1]
                 let hi = (state >> 32) as u32;
                 (hi as f32 / u32::MAX as f32) * 2.0 - 1.0
@@ -67,7 +72,8 @@ mod tests {
     fn test_hnsw_exact_match_ranks_first() {
         let dim = 128;
         let n = 20;
-        let embeddings: Vec<(usize, Vec<f32>)> = (0..n).map(|i| (i, unit_vec(dim, i as u64 + 1))).collect();
+        let embeddings: Vec<(usize, Vec<f32>)> =
+            (0..n).map(|i| (i, unit_vec(dim, i as u64 + 1))).collect();
         let index = HnswIndex::build(&embeddings);
 
         // Query with the 5th vector — exact match should rank first with distance ≈ 0
@@ -77,14 +83,18 @@ mod tests {
         assert_eq!(results.len(), 3, "should return exactly 3 results");
         let (top_id, top_dist) = results[0];
         assert_eq!(top_id, 5, "exact match should rank first");
-        assert!(top_dist < 1e-4, "distance to self should be ≈ 0, got {top_dist}");
+        assert!(
+            top_dist < 1e-4,
+            "distance to self should be ≈ 0, got {top_dist}"
+        );
     }
 
     #[test]
     fn test_hnsw_results_sorted_ascending() {
         let dim = 128;
         let n = 20;
-        let embeddings: Vec<(usize, Vec<f32>)> = (0..n).map(|i| (i, unit_vec(dim, i as u64 + 1))).collect();
+        let embeddings: Vec<(usize, Vec<f32>)> =
+            (0..n).map(|i| (i, unit_vec(dim, i as u64 + 1))).collect();
         let index = HnswIndex::build(&embeddings);
 
         let query = unit_vec(dim, 999);
@@ -92,7 +102,10 @@ mod tests {
 
         assert!(!results.is_empty());
         for w in results.windows(2) {
-            assert!(w[0].1 <= w[1].1, "results must be sorted ascending by distance");
+            assert!(
+                w[0].1 <= w[1].1,
+                "results must be sorted ascending by distance"
+            );
         }
     }
 
@@ -100,7 +113,8 @@ mod tests {
     fn test_hnsw_k_results() {
         let dim = 128;
         let n = 20;
-        let embeddings: Vec<(usize, Vec<f32>)> = (0..n).map(|i| (i, unit_vec(dim, i as u64 + 1))).collect();
+        let embeddings: Vec<(usize, Vec<f32>)> =
+            (0..n).map(|i| (i, unit_vec(dim, i as u64 + 1))).collect();
         let index = HnswIndex::build(&embeddings);
 
         let query = embeddings[10].1.clone();

@@ -121,8 +121,9 @@ async fn main() -> Result<()> {
                         None
                     };
 
-                let rlm = rslm_core::Rlm::new(provider, cli.max_depth, cli.max_iterations, cli.verbose)
-                    .with_store(Arc::clone(&store), embedder, doc_id);
+                let rlm =
+                    rslm_core::Rlm::new(provider, cli.max_depth, cli.max_iterations, cli.verbose)
+                        .with_store(Arc::clone(&store), embedder, doc_id);
                 let answer = rlm.run(&query, &ctx).await?;
                 println!("{answer}");
                 Ok(())

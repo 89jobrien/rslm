@@ -64,10 +64,7 @@ mod tests {
     #[async_trait]
     impl EmbedProvider for MockEmbedder {
         async fn embed(&self, texts: Vec<String>) -> Result<Vec<Vec<f32>>> {
-            Ok(texts
-                .into_iter()
-                .map(|_| vec![0.0_f32; self.dim])
-                .collect())
+            Ok(texts.into_iter().map(|_| vec![0.0_f32; self.dim]).collect())
         }
     }
 
