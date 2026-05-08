@@ -34,6 +34,12 @@ pub struct Rlm {
     pub(crate) max_depth: usize,
     pub(crate) max_iterations: usize,
     pub(crate) verbose: bool,
+    #[cfg(feature = "store")]
+    pub(crate) store: Option<Arc<rslm_store::ChunkStore>>,
+    #[cfg(feature = "store")]
+    pub(crate) embedder: Option<Arc<dyn rslm_store::EmbedProvider>>,
+    #[cfg(feature = "store")]
+    pub(crate) doc_id: Option<String>,
 }
 
 impl Rlm {
@@ -49,7 +55,26 @@ impl Rlm {
             max_depth,
             max_iterations,
             verbose,
+            #[cfg(feature = "store")]
+            store: None,
+            #[cfg(feature = "store")]
+            embedder: None,
+            #[cfg(feature = "store")]
+            doc_id: None,
         }
+    }
+
+    #[cfg(feature = "store")]
+    pub fn with_store(
+        mut self,
+        store: Arc<rslm_store::ChunkStore>,
+        embedder: Option<Arc<dyn rslm_store::EmbedProvider>>,
+        doc_id: String,
+    ) -> Self {
+        self.store = Some(store);
+        self.embedder = embedder;
+        self.doc_id = Some(doc_id);
+        self
     }
 
     pub async fn run(&self, query: &str, ctx: &str) -> Result<String, RlmError> {
@@ -67,6 +92,13 @@ impl Rlm {
         let child_max_iter = self.max_iterations;
         let child_verbose = self.verbose;
 
+        #[cfg(feature = "store")]
+        let child_store = self.store.clone();
+        #[cfg(feature = "store")]
+        let child_embedder = self.embedder.clone();
+        #[cfg(feature = "store")]
+        let child_doc_id = self.doc_id.clone();
+
         let rlm_call_fn = move |q: String, sub_ctx: String| -> String {
             if child_verbose {
                 println!(
@@ -83,6 +115,12 @@ impl Rlm {
                 max_depth: child_max_depth,
                 max_iterations: child_max_iter,
                 verbose: child_verbose,
+                #[cfg(feature = "store")]
+                store: child_store.clone(),
+                #[cfg(feature = "store")]
+                embedder: child_embedder.clone(),
+                #[cfg(feature = "store")]
+                doc_id: child_doc_id.clone(),
             };
             // Bridge async -> sync via a new tokio runtime
             let rt = tokio::runtime::Builder::new_current_thread()
@@ -95,11 +133,46 @@ impl Rlm {
             }
         };
 
-        let engine = build_engine(ctx.to_string(), Arc::clone(&state), rlm_call_fn);
+        #[allow(unused_mut)]
+        let mut engine = build_engine(ctx.to_string(), Arc::clone(&state), rlm_call_fn);
+
+        #[cfg(feature = "store")]
+        if let (Some(store), Some(doc_id)) = (self.store.as_ref(), self.doc_id.as_ref()) {
+            crate::env::register_store_fns(
+                &mut engine,
+                Arc::clone(store),
+                self.embedder.clone(),
+                doc_id.clone(),
+            );
+        }
+
+        #[cfg(feature = "store")]
+        let store_addendum: Option<String> = if self.store.is_some() {
+            Some(
+                "\n\nStore functions available (use doc_id() for the document ID):\
+                \n  doc_id() -> String\
+                \n  ctx_chunks(doc_id) -> int\
+                \n  ctx_chunk(doc_id, i) -> String\
+                \n  ctx_search(doc_id, query, k) -> String   — BM25 keyword search\
+                \n  ctx_hybrid(doc_id, query, k) -> String   — hybrid semantic+keyword (preferred)"
+                    .to_string(),
+            )
+        } else {
+            None
+        };
+
+        #[cfg(not(feature = "store"))]
+        let store_addendum: Option<String> = None;
+
+        let initial_user = if let Some(ref addendum) = store_addendum {
+            format!("Query: {query}{addendum}")
+        } else {
+            format!("Query: {query}")
+        };
 
         let mut messages: Vec<Message> = vec![
             Message::system(SYSTEM_PROMPT),
-            Message::user(format!("Query: {query}")),
+            Message::user(initial_user),
         ];
 
         for iteration in 0..self.max_iterations {

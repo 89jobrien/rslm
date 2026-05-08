@@ -97,6 +97,98 @@ pub fn build_engine(
     engine
 }
 
+#[cfg(feature = "store")]
+pub fn register_store_fns(
+    engine: &mut rhai::Engine,
+    store: std::sync::Arc<rslm_store::ChunkStore>,
+    embedder: Option<std::sync::Arc<dyn rslm_store::EmbedProvider>>,
+    doc_id: String,
+) {
+    // doc_id() -> String
+    {
+        let id = doc_id.clone();
+        engine.register_fn("doc_id", move || id.clone());
+    }
+    // ctx_chunks(doc_id) -> int
+    {
+        let s = store.clone();
+        engine.register_fn("ctx_chunks", move |did: &str| -> i64 {
+            s.get_chunks(did).map(|v| v.len() as i64).unwrap_or(0)
+        });
+    }
+    // ctx_chunk(doc_id, i) -> String
+    {
+        let s = store.clone();
+        engine.register_fn("ctx_chunk", move |did: &str, i: i64| -> String {
+            s.get_chunks(did)
+                .ok()
+                .and_then(|v| v.into_iter().nth(i as usize).map(|(_, t)| t))
+                .unwrap_or_default()
+        });
+    }
+    // ctx_search(doc_id, query, k) -> String — BM25
+    {
+        let s = store.clone();
+        engine.register_fn("ctx_search", move |did: &str, query: &str, k: i64| -> String {
+            let chunks = s.get_chunks(did).unwrap_or_default();
+            let indexed: Vec<(usize, &str)> = chunks.iter().map(|(i, t)| (*i, t.as_str())).collect();
+            let idx = rslm_store::bm25::Bm25Index::build(&indexed);
+            idx.search(query, k as usize)
+                .into_iter()
+                .filter_map(|(id, _)| chunks.iter().find(|(i, _)| *i == id).map(|(_, t)| t.clone()))
+                .collect::<Vec<_>>()
+                .join("\n---\n")
+        });
+    }
+    // ctx_hybrid(doc_id, query, k) -> String — sync wrapper, runs new runtime
+    {
+        let s = store.clone();
+        let emb = embedder.clone();
+        engine.register_fn("ctx_hybrid", move |did: &str, query: &str, k: i64| -> String {
+            let store2 = s.clone();
+            let emb2 = emb.clone();
+            let did2 = did.to_string();
+            let query2 = query.to_string();
+            let k2 = k as usize;
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("build hybrid runtime");
+            rt.block_on(async move {
+                // embed query if embedder available
+                let query_vec: Vec<f32> = if let Some(ref e) = emb2 {
+                    e.embed(vec![query2.clone()]).await.ok()
+                        .and_then(|v| v.into_iter().next())
+                        .unwrap_or_default()
+                } else {
+                    vec![]
+                };
+
+                if query_vec.is_empty() {
+                    // fall back to BM25 only
+                    let chunks = store2.get_chunks(&did2).unwrap_or_default();
+                    let indexed: Vec<(usize, &str)> =
+                        chunks.iter().map(|(i, t)| (*i, t.as_str())).collect();
+                    let idx = rslm_store::bm25::Bm25Index::build(&indexed);
+                    idx.search(&query2, k2)
+                        .into_iter()
+                        .filter_map(|(id, _)| {
+                            chunks.iter().find(|(i, _)| *i == id).map(|(_, t)| t.clone())
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n---\n")
+                } else {
+                    store2
+                        .search_hybrid(&did2, &query2, &query_vec, k2)
+                        .await
+                        .map(|v| v.into_iter().map(|(_, t)| t).collect::<Vec<_>>().join("\n---\n"))
+                        .unwrap_or_default()
+                }
+            })
+        });
+    }
+}
+
 pub fn run_script(
     engine: &Engine,
     script: &str,
