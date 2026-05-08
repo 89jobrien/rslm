@@ -5,13 +5,13 @@
 # Requires OPENAI_API_KEY or ANTHROPIC_API_KEY.
 # Output: JSON report written to --out (default: /tmp/rslm-eval-report.json)
 
-def score-answer [answer: string, patterns: list<string>] -> record {
+def score-answer [answer: string, patterns: list<string>] {
     let lower = ($answer | str downcase)
-    let failed = ($patterns | filter { |p| not ($lower | str contains ($p | str downcase)) })
+    let failed = ($patterns | where { |p| not ($lower | str contains ($p | str downcase)) })
     { passed: ($failed | is-empty), failed_patterns: $failed }
 }
 
-def run-query [query: string, ctx: string, provider: string, model: string] -> string {
+def run-query [query: string, ctx: string, provider: string, model: string] {
     let base = if ($model | is-empty) {
         ["--provider", $provider]
     } else {

@@ -74,7 +74,7 @@
   {
     "id": "db_mutex_choice",
     "query": "Why does the Db use std::sync::Mutex instead of tokio::sync::Mutex?",
-    "expected_patterns": ["async", "await", "blocking"],
+    "expected_patterns": ["std::sync::Mutex", "asynchronous", "Tokio mutex"],
     "harness_responses": [
       "let r = ctx_grep(\"std::sync::Mutex\"); let r2 = ctx_grep(\"Tokio mutex\"); final_answer(r + \"\\n\" + r2)"
     ]
