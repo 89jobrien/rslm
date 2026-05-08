@@ -122,15 +122,20 @@ impl Rlm {
                 #[cfg(feature = "store")]
                 doc_id: child_doc_id.clone(),
             };
-            // Bridge async -> sync via a new tokio runtime
-            let rt = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .expect("build child runtime");
-            match rt.block_on(child.run(&q, &sub_ctx)) {
-                Ok(ans) => ans,
-                Err(e) => format!("rlm_call error: {e}"),
-            }
+            // Bridge async -> sync without nesting runtimes.
+            // block_in_place temporarily removes the current thread from the async executor,
+            // allowing a new single-thread runtime to block on the child RLM.
+            tokio::task::block_in_place(move || {
+                match tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .expect("build child runtime")
+                    .block_on(child.run(&q, &sub_ctx))
+                {
+                    Ok(ans) => ans,
+                    Err(e) => format!("rlm_call error: {e}"),
+                }
+            })
         };
 
         #[allow(unused_mut)]

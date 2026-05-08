@@ -1,0 +1,30 @@
+[tools]
+rust = "1.91.1"
+
+[tasks.check]
+description = "Validate all crates"
+run = "cargo check --workspace"
+
+[tasks.test]
+description = "Run all tests"
+run = "cargo test --workspace"
+
+[tasks.conformance]
+description = "Run the rslm-harness conformance suite"
+run = "cargo test -p rslm-harness conformance"
+
+[tasks.lint]
+description = "Clippy — deny warnings"
+run = "cargo clippy --workspace -- -D warnings"
+
+[tasks.fmt]
+description = "Format all crates"
+run = "cargo fmt --all"
+
+[tasks.fmt-check]
+description = "Check formatting without writing"
+run = "cargo fmt --all -- --check"
+
+[tasks.ci]
+description = "Full CI gate: fmt-check + clippy + test"
+depends = ["fmt-check", "lint", "test"]

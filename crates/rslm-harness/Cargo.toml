@@ -11,3 +11,6 @@ rslm-providers.workspace = true
 tokio.workspace = true
 async-trait.workspace = true
 anyhow.workspace = true
+
+[dev-dependencies]
+serial_test.workspace = true
