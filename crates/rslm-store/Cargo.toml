@@ -15,3 +15,5 @@ async-openai = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
 instant-distance = "0.6"
+rusqlite = { version = "0.31", features = ["bundled"] }
+tempfile = { workspace = true }
