@@ -396,6 +396,46 @@ final_answer(ans)
     }
 
     #[tokio::test]
+    async fn rlm_errors_after_max_error_streak() {
+        // Provider returns 4 consecutive invalid scripts. The loop should give up after
+        // 3 consecutive errors and return ScriptError, not spin until max_iterations.
+        struct AlwaysBrokenProvider;
+        #[async_trait]
+        impl LlmProvider for AlwaysBrokenProvider {
+            async fn complete(&self, _: Vec<Message>) -> Result<String> {
+                Ok("this is not valid rhai @@@@".to_string())
+            }
+            fn model_id(&self) -> &str {
+                "always-broken"
+            }
+        }
+        let rlm = Rlm::new(Arc::new(AlwaysBrokenProvider), 5, 20, false);
+        let result = rlm.run("q", "ctx").await;
+        assert!(
+            matches!(result, Err(crate::protocol::RlmError::ScriptError(_))),
+            "expected ScriptError after 3 consecutive failures, got: {result:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn rlm_error_streak_resets_on_success() {
+        // Two errors, then a valid script, then two more errors — should NOT trigger the cap
+        // since the streak resets. Fifth call recovers with final_answer.
+        let scripts = vec![
+            "bad @@",
+            "bad @@",
+            "ctx_len()", // success — streak resets to 0
+            "bad @@",
+            "bad @@",
+            r#"final_answer("ok")"#,
+        ];
+        let provider = Arc::new(MockProvider::new(scripts));
+        let rlm = Rlm::new(provider, 5, 20, false);
+        let result = rlm.run("q", "ctx").await.unwrap();
+        assert_eq!(result, "ok");
+    }
+
+    #[tokio::test]
     async fn rlm_strips_code_fences_before_execution() {
         // Provider returns script wrapped in ```rhai fences — should still execute.
         let provider = Arc::new(MockProvider::new(vec![

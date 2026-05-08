@@ -1,0 +1,113 @@
+= The Rust Programming Language: Core Concepts =
+
+== Section 1: Ownership ==
+
+Ownership is Rust's most distinctive feature and enables memory safety without a garbage
+collector. Every value in Rust has a single owner — the variable that holds it. When the
+owner goes out of scope, the value is dropped and its memory is freed.
+
+The three ownership rules:
+1. Each value in Rust has an owner.
+2. There can only be one owner at a time.
+3. When the owner goes out of scope, the value will be dropped.
+
+Ownership can be transferred (moved) to a new variable, at which point the original variable
+is no longer valid. For types that implement the Copy trait (e.g. integers, booleans), values
+are copied rather than moved.
+
+== Section 2: Borrowing and References ==
+
+Rather than transferring ownership, Rust allows borrowing a value via references. A reference
+is like a pointer that is guaranteed to point to a valid value for the lifetime of the reference.
+
+Borrowing rules:
+- At any given time, you can have either one mutable reference or any number of immutable
+  references to a piece of data.
+- References must always be valid (no dangling pointers).
+
+Immutable references use the & syntax: `let r = &value;`
+Mutable references use &mut: `let r = &mut value;`
+
+The borrow checker enforces these rules at compile time, eliminating entire classes of
+runtime errors such as use-after-free, double-free, and data races.
+
+== Section 3: Lifetimes ==
+
+Lifetimes are Rust's way of ensuring that references do not outlive the data they refer to.
+Every reference has a lifetime — the scope for which that reference is valid.
+
+In most cases, lifetimes are inferred by the compiler (lifetime elision). When the compiler
+cannot determine the relationship between lifetimes, explicit annotations are required:
+
+    fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+        if x.len() > y.len() { x } else { y }
+    }
+
+Lifetime annotations do not change how long a reference lives; they describe the relationships
+between lifetimes of multiple references so the compiler can verify safety.
+
+== Section 4: Traits ==
+
+Traits define shared behaviour across types, similar to interfaces in other languages. A type
+implements a trait by providing concrete implementations for the trait's methods.
+
+    trait Summary {
+        fn summarise(&self) -> String;
+    }
+
+    struct Article { title: String, content: String }
+
+    impl Summary for Article {
+        fn summarise(&self) -> String {
+            format!("{}: {}...", self.title, &self.content[..50])
+        }
+    }
+
+Traits can be used as bounds on generic types (`T: Summary`) or as dynamic dispatch objects
+(`dyn Summary`). Trait objects incur a vtable lookup overhead; generics are monomorphised at
+compile time and have zero runtime cost.
+
+== Section 5: Concurrency ==
+
+Rust's ownership and type systems provide strong guarantees about concurrent code. The Send
+and Sync marker traits encode thread safety:
+
+- Send: a type is safe to transfer across thread boundaries.
+- Sync: a type is safe to share references across thread boundaries (i.e. &T is Send).
+
+Most primitive types are Send + Sync. Raw pointers are neither. Arc<T> (atomic reference
+counting) allows shared ownership across threads when T: Send + Sync. Mutex<T> and RwLock<T>
+provide interior mutability with runtime locking.
+
+The compiler rejects programs that would cause data races at compile time, making concurrent
+Rust programs free of this class of bug by construction.
+
+== Section 6: Error Handling ==
+
+Rust uses the Result<T, E> enum for recoverable errors and panic! for unrecoverable ones.
+The ? operator propagates errors up the call stack, unwrapping Ok values and returning Err
+values to the caller.
+
+    fn read_file(path: &str) -> Result<String, std::io::Error> {
+        let contents = std::fs::read_to_string(path)?;
+        Ok(contents)
+    }
+
+The thiserror crate simplifies custom error type definitions. The anyhow crate provides an
+ergonomic error type for application code where detailed error types are less important than
+easy propagation and human-readable messages.
+
+== Section 7: Performance ==
+
+Rust aims for zero-cost abstractions: high-level constructs compile down to the same machine
+code you would write by hand. Iterators, closures, and generics are monomorphised at compile
+time with no runtime overhead.
+
+Rust programs typically match or exceed C and C++ performance because:
+- No garbage collector pauses
+- No runtime type information (unless explicitly used via Any)
+- Precise control over memory layout and allocation
+- LLVM backend with aggressive optimisation
+
+Benchmarks from the Computer Language Benchmarks Game consistently place Rust within 10% of
+hand-optimised C for CPU-intensive workloads.

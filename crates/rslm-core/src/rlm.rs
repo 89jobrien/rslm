@@ -176,6 +176,9 @@ impl Rlm {
         let mut messages: Vec<Message> =
             vec![Message::system(SYSTEM_PROMPT), Message::user(initial_user)];
 
+        const MAX_ERROR_STREAK: usize = 3;
+        let mut error_streak: usize = 0;
+
         for iteration in 0..self.max_iterations {
             debug!(depth = self.depth, iteration, "RLM step");
 
@@ -192,10 +195,26 @@ impl Rlm {
             }
 
             // Execute the script; on error feed it back to the model for self-correction.
+            // After MAX_ERROR_STREAK consecutive errors, give up and surface the error.
             let output = match run_script(&engine, &script, &state) {
-                Ok(out) => out,
+                Ok(out) => {
+                    error_streak = 0;
+                    out
+                }
                 Err(err) => {
-                    tracing::warn!(depth = self.depth, iteration, error = %err, "script error, feeding back to model");
+                    error_streak += 1;
+                    tracing::warn!(
+                        depth = self.depth,
+                        iteration,
+                        error_streak,
+                        error = %err,
+                        "script error, feeding back to model"
+                    );
+                    if error_streak >= MAX_ERROR_STREAK {
+                        return Err(RlmError::ScriptError(format!(
+                            "model failed to produce a valid script after {MAX_ERROR_STREAK} consecutive attempts: {err}"
+                        )));
+                    }
                     messages.push(Message::assistant(script));
                     messages.push(Message::user(format!(
                         "Script error:\n{err}\n\nFix the script and try again, or call final_answer()."
