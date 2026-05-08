@@ -1,0 +1,58 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/joe/dev/rslm remote -v)",
+      "Bash(gh repo:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/pre/grep-to-grep-tool.nu"
+          },
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/pre/pre-nextest-op-wrap.nu"
+          },
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/pre/pre-commit-todo-remind.nu"
+          },
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/pre/pre-commit-cargo-lint.nu"
+          },
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/doob/doob-branch-tagger.nu"
+          },
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/doob/doob-destructive-backup.nu"
+          },
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/pre/op-conflict-resolver.nu"
+          },
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/pre/destructive-service-guardian.nu"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu /Users/joe/.claude/hooks/nu/pre/pre-block-generated-files.nu"
+          }
+        ]
+      }
+    ]
+  }
+}
