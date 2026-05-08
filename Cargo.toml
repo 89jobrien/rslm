@@ -5,6 +5,7 @@ members = [
     "crates/rslm-providers",
     "crates/rslm-cli",
     "crates/rslm-harness",
+    "crates/rslm-store",
 ]
 
 [workspace.package]

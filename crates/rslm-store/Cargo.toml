@@ -1,0 +1,9 @@
+[package]
+name = "rslm-store"
+version.workspace = true
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
