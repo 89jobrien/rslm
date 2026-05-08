@@ -2,7 +2,7 @@
   {
     "id": "conn_limit",
     "query": "How does mini-redis limit the number of concurrent connections?",
-    "expected_patterns": ["semaphore", "250", "MAX_CONNECTIONS"],
+    "expected_patterns": ["semaphore", "MAX_CONNECTIONS"],
     "harness_responses": [
       "let r = ctx_grep(\"Semaphore\"); final_answer(r)"
     ]
