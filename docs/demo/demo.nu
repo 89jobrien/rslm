@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
-# rslm demo — three queries that exercise ctx_grep, ctx_slice, and rlm_call (via multi-step).
+# rslm demo — three queries against the mini-redis source code.
+# Source: https://github.com/tokio-rs/mini-redis (Apache-2.0 / MIT)
+#
 # Requires OPENAI_API_KEY or ANTHROPIC_API_KEY in the environment.
 # Usage: nu docs/demo/demo.nu [--provider openai|anthropic] [--model <id>]
 
@@ -16,27 +18,28 @@ def main [
 
     print "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     print "Demo 1 — Keyword lookup (ctx_grep)"
-    print "Query: What are the three ownership rules in Rust?"
+    print "Query: How does mini-redis limit the number of concurrent connections?"
     print "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     run-external "cargo" "run" "--bin" "rslm" "--" ...$base_args
-        "query" "What are the three ownership rules in Rust?"
+        "query" "How does mini-redis limit the number of concurrent connections?"
         "--context-file" $ctx_file
 
     print "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     print "Demo 2 — Multi-step slice and grep"
-    print "Query: How does Rust handle concurrency safety, and what are Send and Sync?"
+    print "Query: How does the Db handle key expiration? What data structures are used"
+    print "       and how does the background task learn about new expirations?"
     print "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     run-external "cargo" "run" "--bin" "rslm" "--" ...$base_args
-        "query" "How does Rust handle concurrency safety, and what are Send and Sync?"
+        "query" "How does the Db handle key expiration? What data structures are used and how does the background task learn about new expirations?"
         "--context-file" $ctx_file
 
     print "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    print "Demo 3 — Cross-section comparison (tests rlm_call delegation)"
-    print "Query: Compare Rust's approach to error handling with its approach to concurrency."
-    print "        Which section covers each topic, and what do they have in common?"
+    print "Demo 3 — Cross-module comparison (exercises rlm_call delegation)"
+    print "Query: Compare how the server handles graceful shutdown versus how the Db"
+    print "       handles shutdown. What signals does each use and what do they wait for?"
     print "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     run-external "cargo" "run" "--bin" "rslm" "--" ...$base_args
-        "query" "Compare Rust's approach to error handling with its approach to concurrency. Which section covers each topic, and what do they have in common?"
+        "query" "Compare how the server handles graceful shutdown versus how the Db handles shutdown. What signals does each use and what do they wait for?"
         "--context-file" $ctx_file
 
     print "\nDemo complete."
