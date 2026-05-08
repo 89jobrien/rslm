@@ -49,8 +49,8 @@
   },
   {
     "id": "connection_buffer",
-    "query": "What is the default read buffer size used by the Connection struct? Search for with_capacity.",
-    "expected_patterns": ["with_capacity", "1024"],
+    "query": "What is the default read buffer size used by the Connection struct? Search for 'with_capacity' to find the buffer initialization.",
+    "expected_patterns": ["4 * 1024"],
     "harness_responses": [
       "let r = ctx_grep(\"with_capacity\"); final_answer(r)"
     ]
@@ -73,10 +73,10 @@
   },
   {
     "id": "db_mutex_choice",
-    "query": "Why does the Db use std::sync::Mutex instead of tokio::sync::Mutex? Search for both.",
-    "expected_patterns": ["std::sync::Mutex"],
+    "query": "Why does the Db use std::sync::Mutex instead of tokio::sync::Mutex? Search for 'not a Tokio mutex' to find the explanation.",
+    "expected_patterns": ["not a Tokio mutex"],
     "harness_responses": [
-      "let r = ctx_grep(\"std::sync::Mutex\"); let r2 = ctx_grep(\"Tokio mutex\"); final_answer(r + \"\\n\" + r2)"
+      "let r = ctx_grep(\"not a Tokio mutex\"); final_answer(r)"
     ]
   }
 ]
