@@ -7,7 +7,7 @@ mod tests;
 use std::sync::Arc;
 
 use anyhow::{bail, Context, Result};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use rslm_providers::{AnthropicProvider, LlmProvider, OpenAiProvider};
 use tracing_subscriber::EnvFilter;
 
@@ -80,6 +80,16 @@ enum Command {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    if std::env::args().nth(1).as_deref() == Some("completions") {
+        clap_complete::generate(
+            clap_complete_nushell::Nushell,
+            &mut Cli::command(),
+            "rslm",
+            &mut std::io::stdout(),
+        );
+        return Ok(());
+    }
+
     let cli = Cli::parse();
 
     tracing_subscriber::fmt()

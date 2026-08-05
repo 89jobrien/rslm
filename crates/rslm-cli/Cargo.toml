@@ -16,6 +16,8 @@ rslm-providers.workspace = true
 tokio.workspace = true
 anyhow.workspace = true
 clap.workspace = true
+clap_complete = "4"
+clap_complete_nushell = "4"
 tracing.workspace = true
 tracing-subscriber.workspace = true
 
