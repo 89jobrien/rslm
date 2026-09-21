@@ -1,3 +1,5 @@
+//! Anthropic Messages API adapter for the RLM provider interface.
+
 use anyhow::{bail, Context, Result};
 use async_trait::async_trait;
 use serde::Deserialize;
@@ -12,6 +14,7 @@ pub struct AnthropicProvider {
 }
 
 impl AnthropicProvider {
+    /// Creates a provider using `ANTHROPIC_API_KEY` and the selected model.
     pub fn new(model: impl Into<String>) -> Result<Self> {
         let api_key = std::env::var("ANTHROPIC_API_KEY").context("ANTHROPIC_API_KEY not set")?;
         Ok(Self {

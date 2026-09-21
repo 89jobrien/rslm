@@ -1,3 +1,5 @@
+//! Benchmarks deterministic golden-query accuracy and RLM loop throughput.
+
 /// Benchmark: deterministic accuracy over the golden query set.
 ///
 /// Each case runs through the full RLM loop with its ideal harness_responses,

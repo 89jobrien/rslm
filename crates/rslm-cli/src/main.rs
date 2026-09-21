@@ -1,3 +1,5 @@
+//! Command-line interface for querying an RLM and managing its chunk store.
+
 mod file_mode;
 mod ingest_mode;
 mod interactive;

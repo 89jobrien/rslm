@@ -1,3 +1,5 @@
+//! SQLite-backed chunk ingestion and keyword, semantic, and hybrid search.
+
 use std::sync::{Arc, Mutex, RwLock};
 
 use anyhow::Result;

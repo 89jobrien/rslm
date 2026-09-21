@@ -1,3 +1,5 @@
+//! OpenAI Chat Completions adapter for the RLM provider interface.
+
 use anyhow::{Context, Result};
 use async_openai::{
     types::{
@@ -17,6 +19,7 @@ pub struct OpenAiProvider {
 }
 
 impl OpenAiProvider {
+    /// Creates a provider using the selected model and default OpenAI configuration.
     pub fn new(model: impl Into<String>) -> Self {
         Self {
             client: Client::new(),

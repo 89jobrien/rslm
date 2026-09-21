@@ -12,10 +12,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nu /Users/joe/.claude/hooks/nu/pre/grep-to-grep-tool.nu"
-          },
-          {
-            "type": "command",
             "command": "nu /Users/joe/.claude/hooks/nu/pre/pre-nextest-op-wrap.nu"
           },
           {

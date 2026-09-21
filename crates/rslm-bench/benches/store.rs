@@ -1,3 +1,5 @@
+//! Benchmarks document ingestion, BM25 indexing, and chunk retrieval.
+
 /// Benchmark: rslm-store — chunk ingestion and search throughput.
 ///
 /// Uses an in-memory SQLite store (tempfile). No embedder — hybrid search

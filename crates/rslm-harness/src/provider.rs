@@ -1,3 +1,5 @@
+//! Scripted provider for deterministic RLM tests and benchmarks.
+
 use std::sync::Mutex;
 
 use anyhow::Result;
@@ -12,6 +14,7 @@ pub struct HarnessProvider {
 }
 
 impl HarnessProvider {
+    /// Creates a provider that returns `responses` in order.
     pub fn new(responses: Vec<String>) -> Self {
         Self {
             responses: Mutex::new(responses),

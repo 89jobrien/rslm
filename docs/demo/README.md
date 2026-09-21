@@ -43,7 +43,7 @@ cargo run --bin rslm -- --verbose query \
 
 With `--verbose`, each Rhai cell prints as it executes:
 
-```
+```text
 [depth=0] >> ctx_grep("Semaphore")
 [depth=0] << limit_connections: Arc<Semaphore>,
              let permit = self.limit_connections.clone().acquire_owned()...

@@ -1,3 +1,5 @@
+//! Core recursive inference loop, Rhai environment, and execution protocol.
+
 pub mod env;
 pub mod protocol;
 pub mod rlm;

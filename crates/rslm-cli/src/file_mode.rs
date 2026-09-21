@@ -1,9 +1,12 @@
+//! One-shot query execution with context supplied inline or from a file.
+
 use std::sync::Arc;
 
 use anyhow::{bail, Context, Result};
 use rslm_core::Rlm;
 use rslm_providers::LlmProvider;
 
+/// Loads context from a file or returns the inline value, preferring the file.
 pub fn resolve_context(context_file: Option<String>, context: Option<String>) -> Result<String> {
     match (context_file, context) {
         (Some(path), _) => {
@@ -14,6 +17,7 @@ pub fn resolve_context(context_file: Option<String>, context: Option<String>) ->
     }
 }
 
+/// Runs one RLM query and prints its final answer.
 pub async fn run(
     provider: Arc<dyn LlmProvider>,
     query: &str,

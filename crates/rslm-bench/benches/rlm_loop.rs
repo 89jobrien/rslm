@@ -1,3 +1,5 @@
+//! Benchmarks full RLM iterations using deterministic scripted responses.
+
 /// Benchmark: full RLM loop iterations via HarnessProvider.
 ///
 /// Measures end-to-end loop cost: provider dispatch, script execution,

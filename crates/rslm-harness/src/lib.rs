@@ -1,3 +1,5 @@
+//! Deterministic RLM test harness with execution-trace capture.
+
 pub mod provider;
 
 use std::sync::Arc;

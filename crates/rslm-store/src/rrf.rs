@@ -1,3 +1,5 @@
+//! Reciprocal Rank Fusion for combining keyword and semantic rankings.
+
 /// Reciprocal Rank Fusion of two ranked lists.
 ///
 /// Each list is `Vec<(chunk_id, score)>` sorted **descending** by score.

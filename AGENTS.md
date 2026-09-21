@@ -51,7 +51,7 @@ cargo nextest run --workspace
 
 ## Workspace Layout
 
-```
+```text
 rslm/
 ├── crates/
 │   ├── rslm-core/      # RLM loop + Rhai environment

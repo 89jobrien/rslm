@@ -1,3 +1,5 @@
+//! Interactive prompting for a query and its file or inline context.
+
 use std::io::{self, BufRead, Write};
 use std::sync::Arc;
 
@@ -5,6 +7,7 @@ use anyhow::Result;
 use rslm_core::Rlm;
 use rslm_providers::LlmProvider;
 
+/// Collects a query and context from standard input, then prints the RLM answer.
 pub async fn run(
     provider: Arc<dyn LlmProvider>,
     max_depth: usize,

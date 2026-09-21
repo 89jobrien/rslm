@@ -1,3 +1,5 @@
+//! Recursive inference orchestration over provider-generated Rhai scripts.
+
 use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
@@ -50,6 +52,7 @@ pub struct Rlm {
 }
 
 impl Rlm {
+    /// Configures an RLM at the root recursion depth.
     pub fn new(
         provider: Arc<dyn LlmProvider>,
         max_depth: usize,
@@ -71,6 +74,7 @@ impl Rlm {
         }
     }
 
+    /// Adds chunk-store search functions to this RLM and its children.
     #[cfg(feature = "store")]
     pub fn with_store(
         mut self,
@@ -84,6 +88,7 @@ impl Rlm {
         self
     }
 
+    /// Drives provider and script iterations until a final answer or limit error.
     pub async fn run(&self, query: &str, ctx: &str) -> Result<String, RlmError> {
         if self.depth >= self.max_depth {
             return Err(RlmError::MaxDepthExceeded(self.max_depth));

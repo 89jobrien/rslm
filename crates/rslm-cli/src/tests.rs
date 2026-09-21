@@ -1,3 +1,5 @@
+//! Tests for one-shot context resolution and query execution.
+
 #[cfg(test)]
 mod file_mode_tests {
     use std::sync::Arc;

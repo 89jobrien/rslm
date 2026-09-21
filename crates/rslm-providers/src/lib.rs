@@ -1,3 +1,10 @@
+//! LLM provider interface and OpenAI and Anthropic adapters.
+
+// TODO(bamlish): another copy of the anthropic.rs + openai.rs adapter pair already present in
+// naptrace-llm, minibox-llm and disyn-neural. rslm drives its own recursive loop, so looprs is
+// not the fit — but nothing in this provider layer is rslm-specific, and it could come from a
+// shared provider crate or from bamlish's client pools instead.
+
 pub mod anthropic;
 pub mod openai;
 pub mod provider;

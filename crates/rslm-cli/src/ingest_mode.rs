@@ -1,7 +1,10 @@
+//! Document ingestion into the SQLite-backed chunk store.
+
 use std::sync::Arc;
 
 use anyhow::Result;
 
+/// Chunks a context file, optionally embeds it, and stores the resulting chunks.
 pub async fn run(
     store_path: &str,
     context_file: &str,

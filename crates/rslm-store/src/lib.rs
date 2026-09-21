@@ -1,3 +1,5 @@
+//! SQLite chunk storage with keyword, semantic, and hybrid retrieval.
+
 pub mod bm25;
 pub mod chunk;
 pub mod embed;

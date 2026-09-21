@@ -1,3 +1,5 @@
+//! Isolated Rhai execution environment and context-access functions.
+
 use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
@@ -97,6 +99,7 @@ pub fn build_engine(
     engine
 }
 
+/// Registers chunk lookup, keyword search, and hybrid search functions with Rhai.
 #[cfg(feature = "store")]
 pub fn register_store_fns(
     engine: &mut rhai::Engine,
@@ -211,6 +214,7 @@ pub fn register_store_fns(
     }
 }
 
+/// Executes one script in a fresh scope and returns its captured and expression output.
 pub fn run_script(
     engine: &Engine,
     script: &str,

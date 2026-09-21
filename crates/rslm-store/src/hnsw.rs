@@ -1,3 +1,5 @@
+//! Approximate nearest-neighbor search over chunk embeddings using cosine distance.
+
 use instant_distance::{Builder, HnswMap, Point as InstantPoint, Search};
 
 /// Newtype implementing cosine distance for instant-distance.

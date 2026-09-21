@@ -1,3 +1,5 @@
+//! Embedding provider interface and batched OpenAI implementation.
+
 use anyhow::Result;
 use async_trait::async_trait;
 
@@ -5,6 +7,7 @@ const BATCH_SIZE: usize = 100;
 
 #[async_trait]
 pub trait EmbedProvider: Send + Sync {
+    /// Produces one embedding vector for each input text, preserving input order.
     async fn embed(&self, texts: Vec<String>) -> Result<Vec<Vec<f32>>>;
 }
 

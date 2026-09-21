@@ -1,3 +1,5 @@
+//! Provider-neutral chat messages and asynchronous completion interface.
+
 use anyhow::Result;
 use async_trait::async_trait;
 
@@ -15,6 +17,7 @@ pub struct Message {
 }
 
 impl Message {
+    /// Creates a system instruction message.
     pub fn system(content: impl Into<String>) -> Self {
         Self {
             role: Role::System,
@@ -22,6 +25,7 @@ impl Message {
         }
     }
 
+    /// Creates a user message.
     pub fn user(content: impl Into<String>) -> Self {
         Self {
             role: Role::User,
@@ -29,6 +33,7 @@ impl Message {
         }
     }
 
+    /// Creates an assistant message.
     pub fn assistant(content: impl Into<String>) -> Self {
         Self {
             role: Role::Assistant,
@@ -39,6 +44,8 @@ impl Message {
 
 #[async_trait]
 pub trait LlmProvider: Send + Sync {
+    /// Returns the assistant content for the supplied conversation.
     async fn complete(&self, messages: Vec<Message>) -> Result<String>;
+    /// Returns the provider-specific model identifier.
     fn model_id(&self) -> &str;
 }

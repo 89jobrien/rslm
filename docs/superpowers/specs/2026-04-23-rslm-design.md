@@ -38,7 +38,7 @@ model, at comparable or lower cost than feeding the full context directly.
 
 3-crate Cargo workspace:
 
-```
+```text
 rslm/
   Cargo.toml                        # workspace
   crates/
@@ -157,7 +157,7 @@ Provider and model selected via environment variables:
 
 ## CLI
 
-```
+```text
 rslm query "<query>" --context-file <path>     # file-based context
 rslm query "<query>" --context "<string>"      # inline context
 rslm interactive                               # interactive mode (query + context from stdin)
@@ -172,7 +172,7 @@ Flags:
 Interactive mode prompts for query, reads context from stdin or a file path, then streams the
 recursive trace to terminal. Each cell execution prints:
 
-```
+```text
 [depth=0] >> <script>
 [depth=0] << <output>
 [depth=1] rlm_call: "<sub-query>" (ctx: 2048 bytes)

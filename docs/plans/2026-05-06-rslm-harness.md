@@ -112,7 +112,8 @@ captures the full execution trace, enabling integration tests and benchmarks wit
    ```
 
 5. Verify:
-   ```
+
+   ```text
    cargo check --workspace   → zero errors
    ```
 
@@ -254,7 +255,8 @@ captures the full execution trace, enabling integration tests and benchmarks wit
    ```
 
 3. Verify:
-   ```
+
+   ```text
    cargo nextest run -p rslm-harness   → all green
    cargo clippy -p rslm-harness -- -D warnings  → zero warnings
    ```
@@ -289,7 +291,8 @@ captures the full execution trace, enabling integration tests and benchmarks wit
    ```
 
 2. Verify:
-   ```
+
+   ```text
    cargo nextest run -p rslm-harness   → all green
    cargo clippy -p rslm-harness -- -D warnings  → zero warnings
    cargo check --workspace             → zero errors

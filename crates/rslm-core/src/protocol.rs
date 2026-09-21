@@ -1,3 +1,5 @@
+//! Notebook state, loop outcomes, and errors for recursive inference.
+
 use thiserror::Error;
 
 #[derive(Debug, Clone)]
@@ -12,6 +14,7 @@ pub struct Notebook {
 }
 
 impl Notebook {
+    /// Appends an executed script and its output to the notebook.
     pub fn push(&mut self, script: String, output: String) {
         self.cells.push(Cell { script, output });
     }

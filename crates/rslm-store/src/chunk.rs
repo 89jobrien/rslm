@@ -1,3 +1,5 @@
+//! Document chunking strategies with UTF-8-safe fixed-size splitting.
+
 /// Strategy for splitting a document into chunks.
 #[derive(Debug, Clone)]
 pub enum ChunkStrategy {

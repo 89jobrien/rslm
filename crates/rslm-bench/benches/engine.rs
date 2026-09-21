@@ -1,3 +1,5 @@
+//! Benchmarks Rhai context functions and script execution without LLM overhead.
+
 /// Benchmark: Rhai engine script execution throughput.
 ///
 /// Measures how fast the core env functions (ctx_len, ctx_slice, ctx_grep,

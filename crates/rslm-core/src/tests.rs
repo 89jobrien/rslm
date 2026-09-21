@@ -1,3 +1,5 @@
+//! Unit tests for the Rhai environment, notebook, and recursive loop.
+
 #[cfg(test)]
 mod env_tests {
     use std::sync::{Arc, Mutex};

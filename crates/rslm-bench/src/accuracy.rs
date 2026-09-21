@@ -1,3 +1,5 @@
+//! Golden-query accuracy cases, scoring, and aggregate reports.
+
 /// Shared accuracy evaluation types and scorer logic.
 ///
 /// Used by both the deterministic Criterion bench and the live eval scripts.
@@ -62,6 +64,7 @@ pub struct AccuracyReport {
 }
 
 impl AccuracyReport {
+    /// Aggregates individual case results and computes the pass rate.
     pub fn from_results(results: Vec<AccuracyResult>) -> Self {
         let total = results.len();
         let passed = results.iter().filter(|r| r.passed).count();

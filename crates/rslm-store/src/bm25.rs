@@ -1,3 +1,5 @@
+//! In-memory BM25 keyword indexing and ranked retrieval over chunks.
+
 use std::collections::HashMap;
 
 const K1: f32 = 1.5;
